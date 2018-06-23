@@ -1,46 +1,26 @@
-import lib, { decodeIPFSHash } from './lib';
-import { Offer } from 'model';
-import Web3 from 'web3';
+import ipfsHelper from './services/ipfs.helper';
+import miscHelper from './services/misc.helper';
+import { connectToWeb3Provider, compile } from './services/contract.helper';
+import ContractAgent from './agents/agreement.agent';
 
 async function main() {
-  const conviction = lib();
-  const document = conviction.loadExampleFile();
-  const agreement: Offer = { name: 'test', document };
-  try {
-    const web3: Web3 = conviction.web3;
 
-    // web3.eth.personal.newAccount('').then(console.log).catch(err => console.log(err));
-    // web3.eth.personal.getAccounts().then(console.log)
-
-    // Store an Agreement
-    const hash = await conviction.store(agreement);
-
-    console.log(hash);
-
-    const dhash = decodeIPFSHash(hash);
-    console.log(dhash);
-    // Retrieve an agreement
-    // const file = await conviction.retrieve(hash);
-    // console.log(file);
-
-    // Write a contract.
-    const path = "contracts/simple_storage.sol";
-    const contracts = conviction.load(path);
-    if (!(contracts.length === 1)) throw Error('Only one contract can be specified in a file');
-    const contract = contracts[0];
-
-    const valid = await web3.eth.personal.unlockAccount(conviction.deployAccount, process.env.lol);
-    if (!valid) throw Error('Could not login');
-    const address = await conviction.push(contract, dhash);
-    console.log('address:', address);
-  } catch (err) {
-    console.log(err);
+  const ipfsURL: string = 'http://localhost:5001/api/v0/';
+  const providerURL: string = 'http://localhost:8545';
+  const web3 = connectToWeb3Provider(providerURL);
+  const consumerAddress = '0x00D6B14Ff6A34B539FF59f1fFD297525bbcA42b7';
+  const agreementContractPath = 'contracts/agreement.sol';
+  const contractDefinition = {
+    ...compile(agreementContractPath)
   }
+
+  const cAgent = new ContractAgent(web3, consumerAddress);
+  const bool = await cAgent.authenticate(process.env.ETH_PW);
+  console.log(bool);
+  // const newContract = await cAgent.deploy(contractDefinition);
+  // console.log(newContract);
+  
+
 }
 
-function callContract() {
-  const contract = "0x240aa1EE0F07447Ec36e82B07073dFA25d6aBC8D";
-}
-
-callContract();
-// main();
+main();

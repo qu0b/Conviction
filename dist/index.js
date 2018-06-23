@@ -1,48 +1,22 @@
 "use strict";
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const lib_1 = __importStar(require("./lib"));
+const contract_helper_1 = require("./services/contract.helper");
+const agreement_agent_1 = __importDefault(require("./agents/agreement.agent"));
 async function main() {
-    const conviction = lib_1.default();
-    const document = conviction.loadExampleFile();
-    const agreement = { name: 'test', document };
-    try {
-        const web3 = conviction.web3;
-        // web3.eth.personal.newAccount('').then(console.log).catch(err => console.log(err));
-        // web3.eth.personal.getAccounts().then(console.log)
-        // Store an Agreement
-        const hash = await conviction.store(agreement);
-        console.log(hash);
-        const dhash = lib_1.decodeIPFSHash(hash);
-        console.log(dhash);
-        // Retrieve an agreement
-        // const file = await conviction.retrieve(hash);
-        // console.log(file);
-        // Write a contract.
-        const path = "contracts/simple_storage.sol";
-        const contracts = conviction.load(path);
-        if (!(contracts.length === 1))
-            throw Error('Only one contract can be specified in a file');
-        const contract = contracts[0];
-        const valid = await web3.eth.personal.unlockAccount(conviction.deployAccount, process.env.lol);
-        if (!valid)
-            throw Error('Could not login');
-        const address = await conviction.push(contract, dhash);
-        console.log('address:', address);
-    }
-    catch (err) {
-        console.log(err);
-    }
+    const ipfsURL = 'http://localhost:5001/api/v0/';
+    const providerURL = 'http://localhost:8545';
+    const web3 = contract_helper_1.connectToWeb3Provider(providerURL);
+    const consumerAddress = '0x00D6B14Ff6A34B539FF59f1fFD297525bbcA42b7';
+    const agreementContractPath = 'contracts/agreement.sol';
+    const contractDefinition = Object.assign({}, contract_helper_1.compile(agreementContractPath));
+    const cAgent = new agreement_agent_1.default(web3, consumerAddress);
+    const bool = await cAgent.authenticate(process.env.ETH_PW);
+    console.log(bool);
+    // const newContract = await cAgent.deploy(contractDefinition);
+    // console.log(newContract);
 }
-function callContract() {
-    const contract = "0x240aa1EE0F07447Ec36e82B07073dFA25d6aBC8D";
-}
-callContract();
-// main();
+main();
 //# sourceMappingURL=index.js.map
