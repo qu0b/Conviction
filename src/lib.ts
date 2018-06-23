@@ -4,11 +4,25 @@ import * as fs from 'fs';
 import fetch from 'cross-fetch';
 import FormData from 'form-data';
 import * as solc from 'solc';
+import base58 from 'bs58';
 
 interface Conviction {
   web3: Web3
   deployAccount?: string;
   [name: string]: any
+}
+
+export function decodeIPFSHash(hash: string) {
+  const dec = [
+    `0x${base58.decode(hash).slice(2).toString('hex')}`, // hash value
+    base58.decode(hash)[0], // type of hash function
+    base58.decode(hash)[1] // size
+  ]
+  return dec;
+}
+
+function encodeIPFSHash({ hash_value, hash_func, hash_size }) {
+
 }
 
 function connectToWeb3Provider(providerUrl: string = 'http://localhost:8545'): Web3 {
@@ -34,12 +48,12 @@ function createContract(this: Conviction, jsonInterface: any[]) {
   });
 }
 
-function deployContract(this: Conviction, contract, bytecode) {
+function deployContract(this: Conviction, contract, bytecode, constructorArguments: any[]) {
   return new Promise((resolve, reject) => {
     contract
       .deploy({
         data: bytecode,
-        arguments: [5],
+        arguments: constructorArguments,
       })
       .send({
         from: this.deployAccount,
@@ -111,9 +125,9 @@ function loadContract(contractPath: string = '') {
   return contracts;
 }
 
-async function pushContract(this: Conviction, contract: { jsonInterface: any[]; bytecode: string; }) {
+async function pushContract(this: Conviction, contract: { jsonInterface: any[]; bytecode: string }, contractArguments: any[]) {
   const contractInstance = this.create(contract.jsonInterface);
-  const address = await this.deploy(contractInstance, contract.bytecode);
+  const address = await this.deploy(contractInstance, contract.bytecode, contractArguments);
   return address;
 }
 

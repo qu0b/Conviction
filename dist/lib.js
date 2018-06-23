@@ -15,6 +15,18 @@ const fs = __importStar(require("fs"));
 const cross_fetch_1 = __importDefault(require("cross-fetch"));
 const form_data_1 = __importDefault(require("form-data"));
 const solc = __importStar(require("solc"));
+const bs58_1 = __importDefault(require("bs58"));
+function decodeIPFSHash(hash) {
+    const dec = [
+        `0x${bs58_1.default.decode(hash).slice(2).toString('hex')}`,
+        bs58_1.default.decode(hash)[0],
+        bs58_1.default.decode(hash)[1] // size
+    ];
+    return dec;
+}
+exports.decodeIPFSHash = decodeIPFSHash;
+function encodeIPFSHash({ hash_value, hash_func, hash_size }) {
+}
 function connectToWeb3Provider(providerUrl = 'http://localhost:8545') {
     // if (!this.web3) {
     const httpProvider = new web3_1.default.providers.HttpProvider(providerUrl);
@@ -37,12 +49,12 @@ function createContract(jsonInterface) {
         gasPrice: 10000000000,
     });
 }
-function deployContract(contract, bytecode) {
+function deployContract(contract, bytecode, constructorArguments) {
     return new Promise((resolve, reject) => {
         contract
             .deploy({
             data: bytecode,
-            arguments: [5],
+            arguments: constructorArguments,
         })
             .send({
             from: this.deployAccount,
@@ -111,9 +123,9 @@ function loadContract(contractPath = '') {
     }
     return contracts;
 }
-async function pushContract(contract) {
+async function pushContract(contract, contractArguments) {
     const contractInstance = this.create(contract.jsonInterface);
-    const address = await this.deploy(contractInstance, contract.bytecode);
+    const address = await this.deploy(contractInstance, contract.bytecode, contractArguments);
     return address;
 }
 function createConviction(ipfsURL = 'http://localhost:5001/api/v0/', web3URL = 'http://localhost:8545') {

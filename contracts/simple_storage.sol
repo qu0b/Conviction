@@ -1,19 +1,25 @@
 pragma solidity ^0.4.23;
 
-contract SimpleStorage {
-  uint public hash;
-  // andere variables
-
-  constructor(uint initialValue) public {
-    hash = initialValue;
+contract Agreement {
+  struct Multihash {
+    bytes32 hash_value;
+    uint8 hash_func;
+    uint8 hash_size;
   }
 
-  function set(uint x) public {
-    hash = x;
+  Multihash agreement;
+  
+  bool public active;
+
+  constructor(bytes32 _hash_value, uint8 _hash_func, uint8 _hash_size) public {
+    agreement = Multihash(_hash_value, _hash_func, _hash_size);
   }
 
-  function get() public view returns (uint retVal) {
-    return hash;
+  function setActive(bool x) public {
+    active = x;
   }
 
+  function getActive() public view returns (bool retVal) {
+    return active;
+  }
 }
