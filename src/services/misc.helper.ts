@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 export function loadExampleFile(): Buffer {
-  return fs.readFileSync('./exampleFile.xml');
+  return fs.readFileSync('exampleFile.xml');
 }
 
 

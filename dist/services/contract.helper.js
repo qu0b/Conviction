@@ -11,25 +11,42 @@ function connectToWeb3Provider(providerUrl = 'http://localhost:8545') {
     return new web3_1.default(httpProvider);
 }
 exports.connectToWeb3Provider = connectToWeb3Provider;
-function readContract(filePath = './contracts/simple_storage.sol') {
-    if (!filePath.endsWith('.sol'))
+function readSolFile(path = './contracts/simple_storage.sol') {
+    if (!path.endsWith('.sol'))
         throw Error("The path specified refers to the wrong file type. Use the .sol extension.");
-    const contract = fs_1.default.readFileSync(filePath, 'utf-8');
+    const contract = fs_1.default.readFileSync(path, 'utf-8');
+    return contract.toString();
+}
+exports.readSolFile = readSolFile;
+function compileSolContract(input, contractName) {
+    const output = solc_1.default.compile(input, 1);
+    if (!output)
+        throw Error('The solc compiler returned an empty output');
+    const contract = output.contracts[':' + contractName];
+    if (!contract)
+        throw Error("The contract with the specificed name " + contractName + "Could not be found");
     return contract;
 }
-exports.readContract = readContract;
-// compiles and returns the first contract in the specified file.
-function compile(contractPath = '') {
-    const input = readContract(contractPath);
-    const output = solc_1.default.compile(input.toString(), 1);
-    const contracts = Object.values(output.contracts);
-    if (!contracts.length)
-        throw Error('The file path you provided contains no contracts');
-    const contract = contracts[0];
-    const jsonInterface = JSON.parse(contract.interface);
-    const bytecode = '0x' + contract.bytecode;
-    return { jsonInterface, bytecode, address: '' };
+exports.compileSolContract = compileSolContract;
+function getByteCode(contract) {
+    if (!contract.bytecode)
+        throw Error('bytecode is undefined');
+    return '0x' + contract.bytecode;
 }
-exports.compile = compile;
+exports.getByteCode = getByteCode;
+function getJsonInteface(contract) {
+    if (!contract.interface)
+        throw Error('jsonInterface is undefined');
+    return JSON.parse(contract.interface);
+}
+exports.getJsonInteface = getJsonInteface;
+function prepareContract(filePath, contractName) {
+    const input = readSolFile(filePath);
+    const contract = compileSolContract(input, contractName);
+    const bytecode = getByteCode(contract);
+    const jsonInterface = getJsonInteface(contract);
+    return { jsonInterface, bytecode, gas: contract.gasEstimates && contract.gasEstimates.creation };
+}
+exports.prepareContract = prepareContract;
 exports.default = module.exports;
 //# sourceMappingURL=contract.helper.js.map

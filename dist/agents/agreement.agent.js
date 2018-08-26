@@ -29,7 +29,7 @@ class AgreementAgent {
             return this.authenticated = await this.web3.eth.personal.unlockAccount(this.owner, pass);
         }
         catch (error) {
-            console.log('Could not authenticate check that your node is running with an active json rpc');
+            console.log('Could not authenticate check that your node is running with an active json rpc\n', error);
             return false;
         }
     }
@@ -58,6 +58,22 @@ class AgreementAgent {
             })
                 .catch((err) => reject(err));
         });
+    }
+    async setHash(hash) {
+        return this.contract.methods.setHash(hash).send({ from: this.owner });
+    }
+    async getHash() {
+        if (!this.contract)
+            throw Error('No contract object defined');
+        return this.contract.methods.getHash().call({ from: this.owner });
+    }
+    async setActive(bool) {
+        return this.contract.methods.setActive(bool).send({ from: this.owner });
+    }
+    async getActive() {
+        if (!this.contract)
+            throw Error('No contract object defined');
+        return this.contract.methods.getActive().call({ from: this.owner });
     }
 }
 exports.default = AgreementAgent;

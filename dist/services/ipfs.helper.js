@@ -4,10 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const bs58_1 = __importDefault(require("bs58"));
+const form_data_1 = __importDefault(require("form-data"));
+const cross_fetch_1 = __importDefault(require("cross-fetch"));
 function writeBuffer(buffer, baseURL = 'http://localhost:5001/api/v0/') {
-    const data = new FormData();
+    const data = new form_data_1.default();
     data.append('data', buffer);
-    return fetch(`${baseURL}add`, {
+    return cross_fetch_1.default(`${baseURL}add`, {
         method: 'POST',
         body: data,
     })
@@ -19,7 +21,7 @@ function writeBuffer(buffer, baseURL = 'http://localhost:5001/api/v0/') {
 }
 exports.writeBuffer = writeBuffer;
 function readFile(hash, baseURL, string = 'http://localhost:5001/api/v0/') {
-    return fetch(`${baseURL}cat?arg=${hash}`, {
+    return cross_fetch_1.default(`${baseURL}cat?arg=${hash}`, {
         method: 'GET',
     })
         .then((res) => res.text())

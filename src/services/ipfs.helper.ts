@@ -1,5 +1,7 @@
 import { IpfsAddResponse } from 'types';
 import base58 from 'bs58';
+import FormData from 'form-data';
+import fetch from 'cross-fetch';
 
 export function writeBuffer(buffer: Buffer, baseURL: string = 'http://localhost:5001/api/v0/'): Promise<IpfsAddResponse> {
   const data: any = new FormData();
@@ -35,7 +37,7 @@ export function decodeMultiHash(hash: string) {
   return dec;
 }
 
-export function encodeMultihash([ hash_value, hash_func, hash_size ]) {
+export function encodeMultihash([hash_value, hash_func, hash_size]) {
   return hash_value;
 }
 

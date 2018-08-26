@@ -5,11 +5,15 @@ contract Agreement {
   string ipfs_hash;
   address consumer;
   address provider;
+  address oracle;
+  uint colateral;
 
+
+  uint public status;
   bool public active;
 
-  constructor(address _consumer) public {
-    consumer = _consumer;
+  constructor(address owner) public {
+    consumer = owner;
   }
 
   function setHash(string _hash) public {

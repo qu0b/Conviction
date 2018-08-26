@@ -7,22 +7,38 @@ export function connectToWeb3Provider(providerUrl: string = 'http://localhost:85
   return new Web3(httpProvider);
 }
 
-export function readContract(filePath: string = './contracts/simple_storage.sol') {
-  if (!filePath.endsWith('.sol')) throw Error("The path specified refers to the wrong file type. Use the .sol extension.");
-  const contract = fs.readFileSync(filePath, 'utf-8');
+export function readSolFile(path: string = './contracts/simple_storage.sol') {
+  if (!path.endsWith('.sol')) throw Error("The path specified refers to the wrong file type. Use the .sol extension.");
+  const contract = fs.readFileSync(path, 'utf-8');
+  return contract.toString();
+}
+
+export function compileSolContract(input, contractName) {
+  const output = solc.compile(input, 1);
+  if(!output) throw Error('The solc compiler returned an empty output');
+
+  const contract = output.contracts[':' + contractName];
+  if(!contract) throw Error("The contract with the specificed name " + contractName + "Could not be found");
+
   return contract;
 }
 
-// compiles and returns the first contract in the specified file.
-export function compile(contractPath: string = '') {
-  const input = readContract(contractPath);
-  const output = solc.compile(input.toString(), 1);
-  const contracts: Array<any> = Object.values(output.contracts);
-  if(!contracts.length) throw Error('The file path you provided contains no contracts');
-  const contract = contracts[0];
-  const jsonInterface = JSON.parse(contract.interface);
-  const bytecode = '0x' + contract.bytecode;
-  return { jsonInterface, bytecode, address: '' };
+export function getByteCode(contract) {
+  if(!contract.bytecode) throw Error('bytecode is undefined');
+  return '0x' + contract.bytecode;
+}
+
+export function getJsonInteface(contract) {
+  if(!contract.interface) throw Error('jsonInterface is undefined')
+  return JSON.parse(contract.interface);
+}
+  
+export function prepareContract(filePath, contractName) {
+  const input = readSolFile(filePath);
+  const contract = compileSolContract(input, contractName);
+  const bytecode = getByteCode(contract);
+  const jsonInterface = getJsonInteface(contract);
+  return { jsonInterface, bytecode, gas: contract.gasEstimates && contract.gasEstimates.creation };
 }
 
 export default module.exports;
