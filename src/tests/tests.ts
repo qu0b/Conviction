@@ -7,7 +7,6 @@ import { Offer, contractOffer } from "types";
 let consumerAgent: NegotiationAgent, providerAgent: NegotiationAgent;
 const initiator = '0x00a329c0648769a73afac7f9381e08fb43dbea72';
 const responder = '0x62a81b5e5c27fb7926f5c4847d5269dffc5128a5';
-const negotionEnd = moment().add('1', 'weeks').unix();
 const offers: Offer[] = [];
 
 
@@ -30,7 +29,7 @@ beforeAll(async () => {
   consumerAgent = setup(initiator);
   providerAgent = setup(responder);
   const source = prepareContract();
-  const contract = await consumerAgent.deploy(source, [responder, negotionEnd, true]);
+  const contract = await consumerAgent.deploy(source, [responder]);
   consumerAgent.contract = contract;
   providerAgent.contract = contract;
 });
