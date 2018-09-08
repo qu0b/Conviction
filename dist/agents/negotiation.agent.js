@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const web3_1 = __importDefault(require("web3"));
 const moment_1 = __importDefault(require("moment"));
+const fs_1 = __importDefault(require("fs"));
 class NegotiationAgent {
     constructor(web3, owner) {
         this.web3 = web3;
@@ -69,7 +70,7 @@ class NegotiationAgent {
     async saveTransaction(transaction) {
         transaction.meta.date = moment_1.default().unix();
         transaction.meta.from = this.owner;
-        // fs.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
+        fs_1.default.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
     }
     async getBalance() {
         return parseInt(await this.web3.eth.getBalance(this.owner));

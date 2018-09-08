@@ -73,7 +73,7 @@ export default class NegotiationAgent {
   async saveTransaction(transaction) {
     transaction.meta.date = moment().unix();
     transaction.meta.from = this.owner;
-    // fs.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
+    fs.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
     
   }
 

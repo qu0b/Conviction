@@ -50,6 +50,7 @@ contract Negotiation {
     string _ipfs_reference, 
     uint8 _state
     ) public onlyParticipant validStateTransitions(offers[_responseTo].state, States(_state)) {
+    require(offers[_responseTo].creator != msg.sender);
     offers[_responseTo].creator = msg.sender;
     offers[_responseTo].state = States(_state);
     offers[_responseTo].ipfs_reference = _ipfs_reference;
