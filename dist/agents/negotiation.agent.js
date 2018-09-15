@@ -4,12 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const web3_1 = __importDefault(require("web3"));
-const moment_1 = __importDefault(require("moment"));
-const fs_1 = __importDefault(require("fs"));
+const contract_helper_1 = require("../services/contract.helper");
+// import moment from 'moment';
+// import fs from 'fs';
 class NegotiationAgent {
-    constructor(web3, owner) {
-        this.web3 = web3;
+    constructor(owner = "0x00a329c0648769a73afac7f9381e08fb43dbea72", web3 = contract_helper_1.connectToWeb3Provider()) {
         this.owner = owner;
+        this.web3 = web3;
         this.gas = 4000000;
         this.gasPrice = 0; // 1000000000
         if (!(web3 instanceof web3_1.default))
@@ -24,6 +25,9 @@ class NegotiationAgent {
             console.log('Could not authenticate check that your node is running with an active json rpc\n', error);
             return false;
         }
+    }
+    setOwner(address) {
+        this.owner = address;
     }
     set(compiledContract, address) {
         const { jsonInterface, gas } = compiledContract;
@@ -68,16 +72,18 @@ class NegotiationAgent {
         });
     }
     async saveTransaction(transaction) {
-        transaction.meta.date = moment_1.default().unix();
-        transaction.meta.from = this.owner;
-        fs_1.default.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
+        // transaction.meta.date = moment().unix();
+        // transaction.meta.from = this.owner;
+        // fs.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
     }
     async getBalance() {
+        //@ts-ignore
         return parseInt(await this.web3.eth.getBalance(this.owner));
     }
     async getContractBalance() {
         if (this.contract && this.contract._address) {
             const balance = await this.web3.eth.getBalance(this.contract._address);
+            //@ts-ignore
             return parseInt(balance);
         }
         else
@@ -92,6 +98,7 @@ class NegotiationAgent {
             duration
         };
         this.saveTransaction(transaction);
+        return transaction;
     }
     async counterOfferState(responseTo, ipfs_reference, state) {
         const resolvedState = typeof state === 'string' ? this.retrieveState(state) : state;
@@ -103,6 +110,7 @@ class NegotiationAgent {
             state
         };
         this.saveTransaction(transaction);
+        return transaction;
     }
     async counterOffer(responseTo, ipfs_reference, deposit, duration, state) {
         const resolvedState = typeof state === 'string' ? this.retrieveState(state) : state;
@@ -116,6 +124,7 @@ class NegotiationAgent {
             duration
         };
         this.saveTransaction(transaction);
+        return transaction;
     }
     async negotiationEnd() {
         const _negotiationEnd = this.contract.methods.negotiationEnd().call({ from: this.owner });
@@ -143,6 +152,12 @@ class NegotiationAgent {
             index
         };
         this.saveTransaction(transaction);
+        return transaction;
+    }
+    async dispute(index) {
+        const transaction = await this.contract.methods.dispute(index).send({ from: this.owner }).on('error', err => console.log('error: ', err));
+        // this.saveTransaction(transaction);
+        return transaction;
     }
     async deposit(index, value) {
         const transaction = await this.contract.methods.deposit(index).send({ from: this.owner, value }).on('error', err => console.log);
@@ -152,6 +167,11 @@ class NegotiationAgent {
             value
         };
         this.saveTransaction(transaction);
+        return transaction;
+    }
+    async flag(index, flag) {
+        const transaction = await this.contract.methods.flag(index, flag).send({ from: this.owner }).on('error', err => console.log);
+        return transaction;
     }
     mapOffer(offer) {
         return {

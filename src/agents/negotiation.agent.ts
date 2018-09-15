@@ -1,7 +1,8 @@
 import Web3 from 'web3';
 import { Offer, contractOffer } from "types";
-import moment from 'moment';
-import fs from 'fs';
+import { connectToWeb3Provider } from '../services/contract.helper';
+// import moment from 'moment';
+// import fs from 'fs';
 
 export default class NegotiationAgent {
   gas = 4000000
@@ -10,8 +11,8 @@ export default class NegotiationAgent {
   authenticated
 
   constructor(
-    public web3: Web3,
-    public owner: string,
+    public owner: string = "0x00a329c0648769a73afac7f9381e08fb43dbea72",
+    public web3: Web3 = connectToWeb3Provider(),
   ) {
     if (!(web3 instanceof Web3)) throw Error('could not initialize the Agreement class');
   }
@@ -24,6 +25,10 @@ export default class NegotiationAgent {
       console.log('Could not authenticate check that your node is running with an active json rpc\n', error);
       return false;
     }
+  }
+
+  setOwner(address) {
+    this.owner = address;
   }
 
   set(compiledContract, address) {
@@ -40,7 +45,7 @@ export default class NegotiationAgent {
   }
 
 
-  deploy(compiledContract, args: any[]) {
+  deploy(compiledContract, args: any[]): Promise<any> {
     const { jsonInterface, bytecode } = compiledContract;
     const contract = new this.web3.eth.Contract(jsonInterface, '', {
       from: this.owner,
@@ -71,19 +76,21 @@ export default class NegotiationAgent {
   }
 
   async saveTransaction(transaction) {
-    transaction.meta.date = moment().unix();
-    transaction.meta.from = this.owner;
-    fs.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
+    // transaction.meta.date = moment().unix();
+    // transaction.meta.from = this.owner;
+    // fs.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
     
   }
 
   async getBalance() {
+    //@ts-ignore
     return parseInt(await this.web3.eth.getBalance(this.owner));
   }
 
   async getContractBalance(): Promise<string> {
     if(this.contract && this.contract._address) {
       const balance = await this.web3.eth.getBalance(this.contract._address);
+      //@ts-ignore
       return parseInt(balance);
     } else throw Error("Cloud not get contract balance");
   }
@@ -97,6 +104,7 @@ export default class NegotiationAgent {
       duration
     }
     this.saveTransaction(transaction);
+    return transaction;
   }
 
   async counterOfferState(responseTo, ipfs_reference, state) {
@@ -109,6 +117,7 @@ export default class NegotiationAgent {
       state
     }
     this.saveTransaction(transaction);
+    return transaction;
   }
 
   async counterOffer(responseTo, ipfs_reference, deposit, duration, state) {
@@ -123,6 +132,7 @@ export default class NegotiationAgent {
       duration
     }
     this.saveTransaction(transaction);
+    return transaction;
   }
 
   async negotiationEnd() {
@@ -153,7 +163,13 @@ export default class NegotiationAgent {
       type: 'withdraw',
       index
     }
-    this.saveTransaction(transaction)
+    this.saveTransaction(transaction);
+    return transaction;
+  }
+  async dispute(index) {
+    const transaction = await this.contract.methods.dispute(index).send({ from: this.owner }).on('error', err => console.log('error: ', err));
+    // this.saveTransaction(transaction);
+    return transaction;
   }
 
   async deposit(index, value) {
@@ -164,6 +180,12 @@ export default class NegotiationAgent {
       value
     }
     this.saveTransaction(transaction);
+    return transaction;
+  }
+
+  async flag(index, flag) {
+    const transaction = await this.contract.methods.flag(index, flag).send({ from: this.owner }).on('error', err => console.log);
+    return transaction;
   }
 
   mapOffer(offer: contractOffer) {

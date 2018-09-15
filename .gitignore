@@ -4,3 +4,5 @@ bin
 .vscode
 example*.xml
 negotiation*.xml
+.DS_Store
+

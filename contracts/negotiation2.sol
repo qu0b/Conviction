@@ -2,6 +2,8 @@ pragma solidity ^0.4.23;
 
 contract Negotiation {
   enum States { Advisory, Solicited, Acceptable, Rejected, Acceptable_Acknowledge, Binding, Deposited, Disputed, Withdrawn }
+  enum Flags { none, yellow, red }
+
   address initiator;
   address responder;
   Offer[] public offers;
@@ -10,6 +12,8 @@ contract Negotiation {
   event agreementMade(uint index, uint end, uint deposit);
   event stateChange(uint index, uint8 next);
   event newOffer(uint index, string ipfs_reference, uint deposit, uint duration);
+  address referee;
+  bool isConsumer;
 
    struct Offer {
     uint id;
@@ -18,13 +22,18 @@ contract Negotiation {
     uint deposit;
     uint duration;
     States state;
+    Flags flag;
   }
   
   constructor(
-      address _responder
+      address _responder,
+      address _referee,
+      bool _isConsumer
   ) public {
     initiator = msg.sender;
     responder = _responder;
+    referee = _referee;
+    isConsumer = _isConsumer;
   }
 
   function offer(
@@ -39,7 +48,8 @@ contract Negotiation {
       ipfs_reference: _ipfs_reference,
       deposit: _deposit,
       duration: _duration,
-      state: States.Advisory
+      state: States.Advisory,
+      flag: Flags.none
     }));
     emit newOffer(length, _ipfs_reference, _deposit, _duration);
     return length;
@@ -64,6 +74,7 @@ contract Negotiation {
     uint _duration,
     uint8 _state
     ) public onlyParticipant validStateTransitions(offers[_responseTo].state, States(_state)){
+    require(msg.sender != offers[_responseTo].creator);
     offers[_responseTo].creator = msg.sender;
     offers[_responseTo].duration = _duration;
     offers[_responseTo].deposit = _deposit;
@@ -77,6 +88,7 @@ contract Negotiation {
     string _ipfs_reference
     ) public onlyParticipant {
       require(offers[_responseTo].state == States.Acceptable_Acknowledge);
+      require(msg.sender != offers[_responseTo].creator);
       offers[_responseTo].creator = msg.sender;
       offers[_responseTo].state = States.Binding;
       offers[_responseTo].ipfs_reference = _ipfs_reference;
@@ -84,7 +96,8 @@ contract Negotiation {
       emit agreementMade(offers[_responseTo].id, offers[_responseTo].duration, offers[_responseTo].deposit);
   }
 
-  function deposit(uint index) public payable onlyParticipant {
+  function deposit(uint index) public payable {
+    require(isConsumer && msg.sender == initiator || !isConsumer && msg.sender == responder);
     require(offers[index].state == States.Binding);
     require(msg.value == offers[index].deposit, 'Wrong deposit amount.');
     payee[index] = msg.sender;
@@ -117,6 +130,13 @@ contract Negotiation {
     offers[index].state = States.Disputed;
     // offers[index].duration += 604800; // adds a week
     payee[index].transfer(offers[index].deposit); // transfers the funds back to the payee
+  }
+
+  function setFlag(uint index, uint _flag) public {
+    require(msg.sender == referee);
+    Flags flag = Flags(_flag);
+    require(Flags.red == flag || Flags.yellow == flag);
+    offers[index].flag = flag;
   }
 
   modifier onlyParticipant() {
