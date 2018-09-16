@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hello Bulma!</title>
+  <title>Conviction</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css">
   <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
   <script src="../../dist/simulation/simulation.js"></script>
@@ -26,11 +26,21 @@
       <h3 class='title is-3'>Setup Configuration</h3>
       <div class="field">
         <div class="control">
-          <input onkeyup="initiate()" id="initiator" class="input is-primary" type="text" placeholder="ETH Address">
+          <input onkeyup="initiate()" id="contract" class="input is-primary" type="text" placeholder="Contract Address">
+
         </div>
       </div>
+      <div class="field">
+        <div class="control">
+          <input onkeyup="initiate()" id="offerId" class="input is-primary" type="number" placeholder="Offer Id">
+        </div>
+      </div>
+      <a id="buttonOffer" class="button is-primary" onclick="getOffer()">View Offer</a>
+      <pre id="offerField">
+      </pre>
     </div>
   </section>
+
 </body>
 
 </html>

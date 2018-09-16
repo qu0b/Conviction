@@ -31,12 +31,12 @@ export default class NegotiationAgent {
     this.owner = address;
   }
 
-  set(compiledContract, address) {
-    const { jsonInterface, gas } = compiledContract;
+  setContract(compiledContract, address) {
+    const { jsonInterface } = compiledContract;
     if (address && jsonInterface && typeof address === 'string') {
       this.contract = new this.web3.eth.Contract(jsonInterface, address, {
         from: this.owner,
-        gas: gas[0] + gas[1],
+        gas: this.gas,
         gasPrice: this.gasPrice,
       });
     } else {
@@ -79,7 +79,7 @@ export default class NegotiationAgent {
     // transaction.meta.date = moment().unix();
     // transaction.meta.from = this.owner;
     // fs.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
-    
+
   }
 
   async getBalance() {
@@ -88,7 +88,7 @@ export default class NegotiationAgent {
   }
 
   async getContractBalance(): Promise<string> {
-    if(this.contract && this.contract._address) {
+    if (this.contract && this.contract._address) {
       const balance = await this.web3.eth.getBalance(this.contract._address);
       //@ts-ignore
       return parseInt(balance);
@@ -109,7 +109,7 @@ export default class NegotiationAgent {
 
   async counterOfferState(responseTo, ipfs_reference, state) {
     const resolvedState = typeof state === 'string' ? this.retrieveState(state) : state;
-    const transaction =  await this.contract.methods.counterOffer(responseTo, ipfs_reference, resolvedState).send({from: this.owner}).on('error', err => console.log);
+    const transaction = await this.contract.methods.counterOffer(responseTo, ipfs_reference, resolvedState).send({ from: this.owner }).on('error', err => console.log);
     transaction.meta = {
       type: "counterOfferState",
       ipfs_reference,
@@ -143,6 +143,7 @@ export default class NegotiationAgent {
 
   async getOffer(index): Promise<Offer> {
     const offer: contractOffer = await this.contract.methods.offers(index).call({ from: this.owner });
+    
     return this.mapOffer(offer);
   }
 
@@ -184,7 +185,7 @@ export default class NegotiationAgent {
   }
 
   async flag(index, flag) {
-    const transaction = await this.contract.methods.flag(index, flag).send({ from: this.owner }).on('error', err => console.log);
+    const transaction = await this.contract.methods.setFlag(index, flag).send({ from: this.owner }).on('error', err => console.log);
     return transaction;
   }
 
@@ -195,7 +196,8 @@ export default class NegotiationAgent {
       ipfs_reference: offer.ipfs_reference,
       deposit: parseInt(offer.deposit),
       duration: parseInt(offer.duration),
-      state: this.getState(parseInt(offer.state))
+      state: this.getState(parseInt(offer.state)),
+      flag: this.getFlag(parseInt(offer.flag))
     }
   }
 
@@ -216,6 +218,8 @@ export default class NegotiationAgent {
       case 6:
         return "Deposited";
       case 7:
+        return "Disputed";
+      case 8: 
         return "Withdrawn";
       default:
         return "Unknown";
@@ -241,6 +245,30 @@ export default class NegotiationAgent {
         return 7;
       default:
         return "Unknown";
+    }
+  }
+
+  getFlag(flag) {
+    switch (flag) {
+      case 0:
+        return "white";
+      case 1:
+        return "yellow";
+      case 2:
+        return "red";
+      default:
+        return "unknown flag";
+    }
+  }
+
+  retrieveFlag(flag) {
+    switch (flag) {
+      case "white":
+        return 0;
+      case "yellow":
+        return 1;
+      case "red":
+        return 2;
     }
   }
 

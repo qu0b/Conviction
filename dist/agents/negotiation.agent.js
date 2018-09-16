@@ -29,12 +29,12 @@ class NegotiationAgent {
     setOwner(address) {
         this.owner = address;
     }
-    set(compiledContract, address) {
-        const { jsonInterface, gas } = compiledContract;
+    setContract(compiledContract, address) {
+        const { jsonInterface } = compiledContract;
         if (address && jsonInterface && typeof address === 'string') {
             this.contract = new this.web3.eth.Contract(jsonInterface, address, {
                 from: this.owner,
-                gas: gas[0] + gas[1],
+                gas: this.gas,
                 gasPrice: this.gasPrice,
             });
         }
@@ -170,7 +170,7 @@ class NegotiationAgent {
         return transaction;
     }
     async flag(index, flag) {
-        const transaction = await this.contract.methods.flag(index, flag).send({ from: this.owner }).on('error', err => console.log);
+        const transaction = await this.contract.methods.setFlag(index, flag).send({ from: this.owner }).on('error', err => console.log);
         return transaction;
     }
     mapOffer(offer) {
@@ -180,7 +180,8 @@ class NegotiationAgent {
             ipfs_reference: offer.ipfs_reference,
             deposit: parseInt(offer.deposit),
             duration: parseInt(offer.duration),
-            state: this.getState(parseInt(offer.state))
+            state: this.getState(parseInt(offer.state)),
+            flag: this.getFlag(parseInt(offer.flag))
         };
     }
     getState(state) {
@@ -200,6 +201,8 @@ class NegotiationAgent {
             case 6:
                 return "Deposited";
             case 7:
+                return "Disputed";
+            case 8:
                 return "Withdrawn";
             default:
                 return "Unknown";
@@ -225,6 +228,28 @@ class NegotiationAgent {
                 return 7;
             default:
                 return "Unknown";
+        }
+    }
+    getFlag(flag) {
+        switch (flag) {
+            case 0:
+                return "white";
+            case 1:
+                return "yellow";
+            case 2:
+                return "red";
+            default:
+                return "unknown flag";
+        }
+    }
+    retrieveFlag(flag) {
+        switch (flag) {
+            case "white":
+                return 0;
+            case "yellow":
+                return 1;
+            case "red":
+                return 2;
         }
     }
 }
