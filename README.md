@@ -26,7 +26,7 @@ The **API** documentation can be found [HERE](https://documenter.getpostman.com/
 --password=pw.txt
 ```
 
-It is not necessary to unlock the account. If you do not unlock the account the password has to be included in the request body (add a variable *pass*).
+  * It is not necessary to unlock the account. If you do not unlock the account the password has to be included in the request body (add a variable *pass*).
 
 * To get the ipfs node up and running run: `> ipfs daemon`. If you have not initialized ipfs you might have to do that by running `> ipfs init`.
 * In the project folder run
