@@ -16,7 +16,9 @@ Clone the repository and run the command `> npm install` to install of of the ne
 
 The **API** documentation can be found [HERE](https://documenter.getpostman.com/view/506234/RWaKU9XG#0ee83dff-4923-4ca3-9e30-f28491ff7a4a).
 
-* To launch the Parity development chain run the following command:
+To get the project up and running perform the following steps:
+* Launch paritys develpment chain
+  * It is not necessary to unlock the account. If you do not unlock the account the password has to be included in the request body (add a variable *pass*).
 
 ```
 > parity --chain=dev \ 
@@ -26,10 +28,9 @@ The **API** documentation can be found [HERE](https://documenter.getpostman.com/
 --password=pw.txt
 ```
 
-  * It is not necessary to unlock the account. If you do not unlock the account the password has to be included in the request body (add a variable *pass*).
-
-* To get the ipfs node up and running run: `> ipfs daemon`. If you have not initialized ipfs you might have to do that by running `> ipfs init`.
-* In the project folder run
+* Get the ipfs node up and running: `> ipfs daemon`. 
+  * If you have not initialized ipfs you might have to do that by running `> ipfs init`.
+* Start the server by running:
   * `> npx tsc -p "tsconfig.json"` to compile the typescript files.
   * `> npm start` to launch the server.
 
