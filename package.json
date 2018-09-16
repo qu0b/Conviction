@@ -1,5 +1,5 @@
 {
-  "name": "Conviction",
+  "name": "conviction-sla",
   "version": "1.0.0",
   "description": "A Blockchain enabled WS-Agreement Framework",
   "main": "dist/API/app.js",
