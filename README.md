@@ -16,7 +16,7 @@ Clone the repository and run the command `> npm install` to install of of the ne
 
 The **API** documentation can be found [HERE](https://documenter.getpostman.com/view/506234/RWaKU9XG#0ee83dff-4923-4ca3-9e30-f28491ff7a4a).
 
-To get the project up and running perform the following steps:
+### To get the project up and running perform the following steps:
 * Launch paritys develpment chain
   * It is not necessary to unlock the account. If you do not unlock the account the password has to be included in the request body (add a variable *pass*).
 
