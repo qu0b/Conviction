@@ -19,6 +19,7 @@ The **API** documentation can be found [HERE](https://documenter.getpostman.com/
 ### To get the project up and running perform the following steps:
 * Launch paritys develpment chain
   * It is not necessary to unlock the account. If you do not unlock the account the password has to be included in the request body (add a variable *pass*).
+  * The account in the parity command below is a default account provided by the parity dev chain. To create a new account execute the command `> parity --chain=dev account new`.
 
 ```
 > parity --chain=dev \ 
@@ -34,7 +35,7 @@ The **API** documentation can be found [HERE](https://documenter.getpostman.com/
   * `> npx tsc -p "tsconfig.json"` to compile the typescript files.
   * `> npm start` to launch the server.
 
-The accound in the parity command above is a default account provided by the parity chain. To create a new account execute the command `> parity --chain=dev account new`.
+
 
 
 
