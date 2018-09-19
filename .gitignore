@@ -6,3 +6,4 @@ example*.xml
 negotiation*.xml
 *.xml
 .DS_Store
+jest.config.js
