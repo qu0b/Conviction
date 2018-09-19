@@ -1,158 +1,119 @@
 pragma solidity ^0.4.23;
 
 contract Negotiation {
-  address public provider;
-  address public consumer;
-  uint public negotiationEnd;
+  enum States { Advisory, Solicited, Acceptable, Rejected, Acceptable_Acknowledge, Binding, Deposited, Disputed, Withdrawn }
+  enum Flags { none, yellow, red }
 
-  struct Offer {
-    uint id;
-    uint responseTo; // 0 is template
-    string ipfs_reference;
-    uint RAM;
-    uint CPU;
-    uint STORAGE;
-    uint deposit;
-    uint serviceEnd;
-    uint8 state; // 1. Advisory 2. Solicited and 3. Acceptable 4. Rejected 5. Acceptable Acknowledge 6. Binding
-    mapping(address => bool) hasAccepted;
-  }
-
+  address initiator;
+  address responder;
   Offer[] public offers;
-  Offer public bindingOffer;
-  mapping(address => bool) canMonitor;
-
-
-  bool isNegotiationComplete;
-  bool isDisbute;
-  bool isCancled;
-
-
+  mapping(uint => address) payee;
   event depsoitMade(address consumer, uint amount);
-  event ServiceCancled();
+  event agreementMade(uint index, uint end, uint deposit);
+  event stateChange(uint index, uint8 next);
+  event newOffer(uint index, string ipfs_reference, uint deposit, uint duration);
+  address referee;
+  bool isConsumer;
 
-  modifier monitor {
-    require(canMonitor[msg.sender] || msg.sender == provider || msg.sender == consumer);
-    _;
+   struct Offer {
+    uint id;
+    address creator;
+    string ipfs_reference;
+    uint deposit;
+    uint duration;
+    States state;
+    Flags flag;
   }
-
-  modifier advisory(Offer storage offer) {
-    require(offer.state != 1, "This action can only be performed while the offer is still in advisory state");
-    _;
-  }
-  modifier solicited(Offer storage offer) {
-    require(offer.state != 2, "This action can only be performed while the offer is still in solicited state");
-    _;
-  }
-  modifier acceptable(Offer storage offer) {
-    require(offer.state != 3, "This action can only be performed while the offer is still in acceptable state");
-    _;
-  }
-  modifier rejected(Offer storage offer) {
-    require(offer.state != 4, "This action can only be performed while the offer is still in rejected state");
-    _;
-  }
-  modifier acceptableAcknowledge(Offer storage offer) {
-    require(offer.state != 5, "This action can only be performed while the offer is in acceptableAcknowledge state");
-    _;
-  }
-  modifier binding(Offer storage offer) {
-    require(offer.state != 6, "This action can only be performed while the offer is in binding state");
-    _;
-  }
-
-  modifier onlyParticipant {
-    require(msg.sender == consumer || msg.sender == provider, 'Only a negotiation participant can call this function');
-    _;
-  }
-
-  modifier beforeNegotiationEnd {
-    require(now <= negotiationEnd || !isNegotiationComplete, 'Negotiation has ended.');
-    _;
-  }
-
-  modifier afterNegotiationEnd {
-    require(now > negotiationEnd || isNegotiationComplete, 'Negotiation has ended.');
-    _;
-  }
-
-  modifier afterService(Offer offer) {
-    require(now > offer.serviceEnd || isCancled == true, 'The service is no longer available');
-    _;
-  }
-
-  modifier consensus(Offer storage offer) {
-    require(offer.hasAccepted[provider] && offer.hasAccepted[consumer], 'You can only deposit once both parties agree');
-    _;
-  }
-
-
+  
   constructor(
-      uint _NegotiationTime,
-      address _provider
+      address _responder,
+      address _referee,
+      bool _isConsumer
   ) public {
-    consumer = msg.sender;
-    provider = _provider;
-    negotiationEnd = now + _NegotiationTime;
+    initiator = msg.sender;
+    responder = _responder;
+    referee = _referee;
+    isConsumer = _isConsumer;
   }
 
-  function offer(uint id, uint responseTo, string _ipfs_reference, uint _deposit, uint _serviceEnd) public onlyParticipant beforeNegotiationEnd {
+  function offer(
+    string _ipfs_reference,
+    uint _deposit,
+    uint _duration
+  ) public onlyParticipant returns (uint) {
+    uint length = offers.length;
     offers.push(Offer({
-      id: offers.length + 1,
-      responseTo: offers.length + 1,
+      id: length,
+      creator: msg.sender,
       ipfs_reference: _ipfs_reference,
       deposit: _deposit,
-      state: 0,
-      serviceEnd: _serviceEnd
+      duration: _duration,
+      state: States.Advisory,
+      flag: Flags.none
     }));
+    emit newOffer(length, _ipfs_reference, _deposit, _duration);
+    return length;
   }
 
-  function counterOffer(uint _responseTo, uint8 _state, string _ipfs_reference, uint _deposit, uint _serviceEnd) public onlyParticipant beforeNegotiationEnd {
-    require(_state == 1 || _state == 2, 'State can either be advisory or solicited');
-    offers.push(Offer({
-      id: offers.length+1,
-      responseTo: _responseTo,
-      ipfs_reference: _ipfs_reference,
-      deposit: _deposit,
-      state: _state,
-      serviceEnd: _serviceEnd
-    }));
+  function counterOffer(
+    uint _responseTo, 
+    string _ipfs_reference, 
+    uint8 _state
+    ) public onlyParticipant validStateTransitions(offers[_responseTo].state, States(_state)) {
+    require(offers[_responseTo].creator != msg.sender);
+    offers[_responseTo].creator = msg.sender;
+    offers[_responseTo].state = States(_state);
+    offers[_responseTo].ipfs_reference = _ipfs_reference;
+    emit stateChange(offers[_responseTo].id, _state);
   }
 
-  // Form an Agreement
-  function acceptOffer(uint index) public beforeNegotiationEnd onlyParticipant
-  {
-    Offer storage current = offers[index];
-    if(msg.sender == provider)
-      current.hasAccepted[provider] = true;
-    if(msg.sender == consumer)
-      current.hasAccepted[consumer] = true;
+  function counterOffer(
+    uint _responseTo, 
+    string _ipfs_reference, 
+    uint _deposit,
+    uint _duration,
+    uint8 _state
+    ) public onlyParticipant validStateTransitions(offers[_responseTo].state, States(_state)){
+    require(msg.sender != offers[_responseTo].creator);
+    offers[_responseTo].creator = msg.sender;
+    offers[_responseTo].duration = _duration;
+    offers[_responseTo].deposit = _deposit;
+    offers[_responseTo].state = States(_state);
+    offers[_responseTo].ipfs_reference = _ipfs_reference;
+    emit stateChange(offers[_responseTo].id, _state);
   }
 
-    function rejectOffer(uint index) public beforeNegotiationEnd onlyParticipant
-  {
-    Offer storage current = offers[index];
-    current.state = 4;
+  function createAgreement(
+    uint _responseTo, 
+    string _ipfs_reference
+    ) public onlyParticipant {
+      require(offers[_responseTo].state == States.Acceptable_Acknowledge);
+      require(msg.sender != offers[_responseTo].creator);
+      offers[_responseTo].creator = msg.sender;
+      offers[_responseTo].state = States.Binding;
+      offers[_responseTo].ipfs_reference = _ipfs_reference;
+      offers[_responseTo].duration = now + offers[_responseTo].duration;
+      emit agreementMade(offers[_responseTo].id, offers[_responseTo].duration, offers[_responseTo].deposit);
   }
 
-  function deposit(uint index) public payable beforeNegotiationEnd consensus(offers[index]) {
-    require(msg.sender == consumer, 'Only the consumer can deposit');
-    require(msg.value == bindingOffer.deposit, 'The deposit amount is too small.');
-
-    Offer storage current = offers[index];
-    current.deposit = msg.value;
-    bindingOffer = offers[index];
-    isNegotiationComplete = true;
+  function deposit(uint index) public payable {
+    require(isConsumer && msg.sender == initiator || !isConsumer && msg.sender == responder);
+    require(offers[index].state == States.Binding);
+    require(msg.value == offers[index].deposit, 'Wrong deposit amount.');
+    payee[index] = msg.sender;
+    offers[index].state = States.Deposited;
     emit depsoitMade(msg.sender, msg.value);
   }
 
-
-  function withdraw() public afterService(bindingOffer) returns (bool) {
-    require(isNegotiationComplete && msg.sender == provider && now > bindingOffer.serviceEnd);
-    require(!isDisbute, "You cannot withdraw money until the disbute is settled");
-    if(bindingOffer.deposit > 0) {
-      if (msg.sender.send(bindingOffer.deposit)) {
-          bindingOffer.deposit = 0;  
+  function withdraw(uint index) public onlyParticipant returns (bool) {
+    require(msg.sender != payee[index]);
+    require(offers[index].state == States.Deposited, "First deposit money");
+    require(now > offers[index].duration, "Agreement not expired");
+    
+    if(offers[index].deposit > 0) {
+      if (msg.sender.send(offers[index].deposit)) {
+          offers[index].state = States.Withdrawn;
+          offers[index].deposit = 0;
           return true;
         } else {
           return false;
@@ -162,43 +123,37 @@ contract Negotiation {
     }
   }
 
-  function raiseDispute() public monitor {
-    isDisbute = true;
+  function dispute(uint index) public {
+    require(msg.sender == payee[index]);
+    require(offers[index].state == States.Deposited);
+    require(now <= offers[index].duration);
+    offers[index].state = States.Disputed;
+    // offers[index].duration += 604800; // adds a week
+    payee[index].transfer(offers[index].deposit); // transfers the funds back to the payee
   }
 
-  function addMonitor(address _monitor) public {
-    require(msg.sender == consumer);
-    canMonitor[_monitor] = true;
+  function setFlag(uint index, uint _flag) public {
+    require(msg.sender == referee);
+    Flags flag = Flags(_flag);
+    require(Flags.red == flag || Flags.yellow == flag);
+    offers[index].flag = flag;
   }
 
-  function removeMonitor(address _monitor) public {
-    require(msg.sender == consumer);
-    canMonitor[_monitor] = false;
+  modifier onlyParticipant() {
+    require(msg.sender == initiator || msg.sender == responder);
+    _;
   }
 
-  function cancelService() public onlyParticipant {
-      // It is a good guideline to structure functions that interact
-      // with other contracts (i.e. they call functions or send Ether)
-      // into three phases:
-      // 1. checking conditions
-      // 2. performing actions (potentially changing conditions)
-      // 3. interacting with other contracts
-      // If these phases are mixed up, the other contract could call
-      // back into the current contract and modify the state or cause
-      // effects (ether payout) to be performed multiple times.
-      // If functions called internally include interaction with external
-      // contracts, they also have to be considered interaction with
-      // external contracts.
-
-      // 1. Conditions
-      require(isNegotiationComplete, 'Negotiation is not complete');
-      require(isCancled, 'Service has already been cancled.');
-
-      // 2. Effects
-      isCancled = true;
-      emit ServiceCancled();
-
-      // 3. Interaction
-      provider.transfer(bindingOffer.deposit);
+  modifier validStateTransitions(States previous, States next) {
+    require(previous != next || previous == States.Advisory && next == States.Advisory || previous == States.Acceptable && next == States.Acceptable);
+    bool advToSol = previous == States.Advisory && next == States.Solicited;
+    bool solToAcc = previous == States.Solicited && next == States.Acceptable;
+    bool accToAck = previous == States.Acceptable && next == States.Acceptable_Acknowledge;
+    bool solToRej = previous == States.Solicited && next == States.Rejected;
+    bool accToRej = previous == States.Acceptable && next == States.Rejected;
+    bool ackToRej = previous == States.Acceptable_Acknowledge && next == States.Rejected;
+    bool witToAcc = previous == States.Withdrawn && next == States.Acceptable;
+    require(advToSol || solToAcc || accToAck || solToRej || accToRej || ackToRej || witToAcc, 'invalid state transition');
+    _;
   }
 }

@@ -1,20 +1,14 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const web3_1 = __importDefault(require("web3"));
 const contract_helper_1 = require("../services/contract.helper");
-// import moment from 'moment';
-// import fs from 'fs';
+const ipfs_helper_1 = require("../services/ipfs.helper");
 class NegotiationAgent {
-    constructor(owner = "0x00a329c0648769a73afac7f9381e08fb43dbea72", web3 = contract_helper_1.connectToWeb3Provider()) {
+    constructor(owner = "0x00a329c0648769a73afac7f9381e08fb43dbea72", web3 = contract_helper_1.connectToWeb3Provider(), providerURL) {
         this.owner = owner;
         this.web3 = web3;
         this.gas = 4000000;
-        this.gasPrice = 0; // 1000000000
-        if (!(web3 instanceof web3_1.default))
-            throw Error('could not initialize the Agreement class');
+        this.gasPrice = '0'; // 1000000000
+        this.web3 = providerURL ? contract_helper_1.connectToWeb3Provider(providerURL) : contract_helper_1.connectToWeb3Provider();
     }
     async authenticate(pass = process.env.ETH_PW || '') {
         try {
@@ -22,7 +16,7 @@ class NegotiationAgent {
             return this.authenticated = await this.web3.eth.personal.unlockAccount(this.owner, pass);
         }
         catch (error) {
-            console.log('Could not authenticate check that your node is running with an active json rpc\n', error);
+            console.log('Could not authenticate', error);
             return false;
         }
     }
@@ -90,6 +84,7 @@ class NegotiationAgent {
             throw Error("Cloud not get contract balance");
     }
     async offer(ipfs_reference, deposit, duration) {
+        ipfs_reference = (await ipfs_helper_1.writeBuffer(ipfs_reference)).Hash;
         const transaction = await this.contract.methods.offer(ipfs_reference, deposit, duration).send({ from: this.owner }).on('error', err => console.log);
         transaction.meta = {
             type: "offer",
@@ -101,6 +96,7 @@ class NegotiationAgent {
         return transaction;
     }
     async counterOfferState(responseTo, ipfs_reference, state) {
+        ipfs_reference = (await ipfs_helper_1.writeBuffer(ipfs_reference)).Hash;
         const resolvedState = typeof state === 'string' ? this.retrieveState(state) : state;
         const transaction = await this.contract.methods.counterOffer(responseTo, ipfs_reference, resolvedState).send({ from: this.owner }).on('error', err => console.log);
         transaction.meta = {
@@ -113,6 +109,7 @@ class NegotiationAgent {
         return transaction;
     }
     async counterOffer(responseTo, ipfs_reference, deposit, duration, state) {
+        ipfs_reference = (await ipfs_helper_1.writeBuffer(ipfs_reference)).Hash;
         const resolvedState = typeof state === 'string' ? this.retrieveState(state) : state;
         const transaction = await this.contract.methods.counterOffer(responseTo, ipfs_reference, deposit, duration, resolvedState).send({ from: this.owner }).on('error', err => console.log);
         transaction.meta = {
@@ -133,9 +130,22 @@ class NegotiationAgent {
     }
     async getOffer(index) {
         const offer = await this.contract.methods.offers(index).call({ from: this.owner });
+        try {
+            const result = await ipfs_helper_1.readFile(offer.ipfs_reference);
+            if (typeof result === 'string') {
+                offer.ipfs_reference = result;
+            }
+            else {
+                throw result;
+            }
+        }
+        catch (err) {
+            console.log(err);
+        }
         return this.mapOffer(offer);
     }
     async createAgreement(responseTo, ipfs_reference) {
+        ipfs_reference = (await ipfs_helper_1.writeBuffer(ipfs_reference)).Hash;
         const transaction = await this.contract.methods.createAgreement(responseTo, ipfs_reference).send({ from: this.owner }).on('error', err => console.log);
         transaction.meta = {
             type: "createAgreement",

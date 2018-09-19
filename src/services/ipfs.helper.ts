@@ -13,18 +13,18 @@ export function writeBuffer(buffer: Buffer, baseURL: string = 'http://localhost:
     .then((res) => res.json())
     .catch((err) => {
       console.log(err);
-      return Error('Could not write file from IPFS');
+      throw Error('Could not write file to IPFS, check your IPFS connection');
     });
 }
 
-export function readFile(hash: string, baseURL, string = 'http://localhost:5001/api/v0/'): Promise<string | Error> {
+export function readFile(hash: string, baseURL: string = 'http://localhost:5001/api/v0/'): Promise<string | Error> {
   return fetch(`${baseURL}cat?arg=${hash}`, {
     method: 'GET',
   })
     .then((res) => res.text())
     .catch((err) => {
       console.log(err);
-      return Error('Could not read file from IPFS');
+      throw Error('Could not read file from IPFS, check your IPFS connection');
     });
 }
 

@@ -16,18 +16,18 @@ function writeBuffer(buffer, baseURL = 'http://localhost:5001/api/v0/') {
         .then((res) => res.json())
         .catch((err) => {
         console.log(err);
-        return Error('Could not write file from IPFS');
+        throw Error('Could not write file to IPFS, check your IPFS connection');
     });
 }
 exports.writeBuffer = writeBuffer;
-function readFile(hash, baseURL, string = 'http://localhost:5001/api/v0/') {
+function readFile(hash, baseURL = 'http://localhost:5001/api/v0/') {
     return cross_fetch_1.default(`${baseURL}cat?arg=${hash}`, {
         method: 'GET',
     })
         .then((res) => res.text())
         .catch((err) => {
         console.log(err);
-        return Error('Could not read file from IPFS');
+        throw Error('Could not read file from IPFS, check your IPFS connection');
     });
 }
 exports.readFile = readFile;

@@ -40,7 +40,7 @@ function getJsonInteface(contract) {
     return JSON.parse(contract.interface);
 }
 exports.getJsonInteface = getJsonInteface;
-function prepareContract(filePath = 'contracts/negotiation2.sol', contractName = 'Negotiation') {
+function prepareContract(filePath = 'contracts/negotiation.sol', contractName = 'Negotiation') {
     const input = readSolFile(filePath);
     const contract = compileSolContract(input, contractName);
     const bytecode = getByteCode(contract);

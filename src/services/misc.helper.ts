@@ -6,7 +6,6 @@ export function loadExampleFile(): Buffer {
 
 
 // function init(ipfsURL: string = 'http://localhost:5001/api/v0/', web3URL: string = 'http://localhost:8545') {
-
 // }
 
 export default module.exports;

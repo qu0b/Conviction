@@ -1,20 +1,20 @@
 import Web3 from 'web3';
 import { Offer, contractOffer } from "types";
 import { connectToWeb3Provider } from '../services/contract.helper';
-// import moment from 'moment';
-// import fs from 'fs';
-
+import { readFile, writeBuffer } from "../services/ipfs.helper";
+import { errors } from "../API/errors";
 export default class NegotiationAgent {
   gas = 4000000
-  gasPrice = 0 // 1000000000
+  gasPrice = '0' // 1000000000
   contract
   authenticated
 
   constructor(
     public owner: string = "0x00a329c0648769a73afac7f9381e08fb43dbea72",
     public web3: Web3 = connectToWeb3Provider(),
+    providerURL?: string
   ) {
-    if (!(web3 instanceof Web3)) throw Error('could not initialize the Agreement class');
+      this.web3 = providerURL ? connectToWeb3Provider(providerURL) : connectToWeb3Provider();
   }
 
   async authenticate(pass: string = process.env.ETH_PW || '') {
@@ -22,7 +22,7 @@ export default class NegotiationAgent {
       //@ts-ignore
       return this.authenticated = await this.web3.eth.personal.unlockAccount(this.owner, pass);
     } catch (error) {
-      console.log('Could not authenticate check that your node is running with an active json rpc\n', error);
+      console.log('Could not authenticate', error);
       return false;
     }
   }
@@ -43,7 +43,6 @@ export default class NegotiationAgent {
       throw Error('Contract was not properly defined');
     }
   }
-
 
   deploy(compiledContract, args: any[]): Promise<any> {
     const { jsonInterface, bytecode } = compiledContract;
@@ -79,7 +78,6 @@ export default class NegotiationAgent {
     // transaction.meta.date = moment().unix();
     // transaction.meta.from = this.owner;
     // fs.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
-
   }
 
   async getBalance() {
@@ -96,6 +94,7 @@ export default class NegotiationAgent {
   }
 
   async offer(ipfs_reference, deposit, duration) {
+    ipfs_reference = (await writeBuffer(ipfs_reference)).Hash;
     const transaction = await this.contract.methods.offer(ipfs_reference, deposit, duration).send({ from: this.owner }).on('error', err => console.log);
     transaction.meta = {
       type: "offer",
@@ -108,6 +107,7 @@ export default class NegotiationAgent {
   }
 
   async counterOfferState(responseTo, ipfs_reference, state) {
+    ipfs_reference = (await writeBuffer(ipfs_reference)).Hash;
     const resolvedState = typeof state === 'string' ? this.retrieveState(state) : state;
     const transaction = await this.contract.methods.counterOffer(responseTo, ipfs_reference, resolvedState).send({ from: this.owner }).on('error', err => console.log);
     transaction.meta = {
@@ -121,6 +121,7 @@ export default class NegotiationAgent {
   }
 
   async counterOffer(responseTo, ipfs_reference, deposit, duration, state) {
+    ipfs_reference = (await writeBuffer(ipfs_reference)).Hash;
     const resolvedState = typeof state === 'string' ? this.retrieveState(state) : state;
     const transaction = await this.contract.methods.counterOffer(responseTo, ipfs_reference, deposit, duration, resolvedState).send({ from: this.owner }).on('error', err => console.log);
     transaction.meta = {
@@ -143,11 +144,23 @@ export default class NegotiationAgent {
 
   async getOffer(index): Promise<Offer> {
     const offer: contractOffer = await this.contract.methods.offers(index).call({ from: this.owner });
+
+    try {
+      const result = await readFile(offer.ipfs_reference);
+      if(typeof result === 'string') {
+        offer.ipfs_reference = result;
+      } else {
+        throw result;
+      }
+    } catch(err) {
+      console.log(err);
+    }
     
     return this.mapOffer(offer);
   }
 
   async createAgreement(responseTo, ipfs_reference) {
+    ipfs_reference = (await writeBuffer(ipfs_reference)).Hash;
     const transaction = await this.contract.methods.createAgreement(responseTo, ipfs_reference).send({ from: this.owner }).on('error', err => console.log);
     transaction.meta = {
       type: "createAgreement",

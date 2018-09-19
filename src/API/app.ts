@@ -1,5 +1,5 @@
 'use strict';
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import bodyParser from 'body-parser';
 import logger from 'morgan';
 import cors from 'cors';
@@ -8,9 +8,8 @@ import { errors } from "./errors";
 import { argumentsDefined } from './validationHelper';
 import { prepareContract } from '../services/contract.helper';
 import NegotiationAgent from '../agents/negotiation.agent';
-import { writeBuffer, readFile } from "../services/ipfs.helper";
 
-const addAgent = (req: express.Request, res: Response, next: NextFunction) => {
+const addAgent = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   const agent = new NegotiationAgent();
   if(req.body.initiator || req.body.address)
     agent.owner = req.body.initiator || req.body.address;
@@ -23,16 +22,15 @@ const addAgent = (req: express.Request, res: Response, next: NextFunction) => {
     }
   }
     
-   if(req.body.pass !== undefined || req.body.pass !== null) {
-     console.log('unlocking');
+   if(req.body.pass !== undefined && req.body.pass !== null) {
      agent.authenticate(req.body.pass);
    }
-
+   
   req.body.agent = agent;
   next();
 }
 
-let corsOptions = {
+const corsOptions = {
   origin: true,
   allowedHeaders: ['Content-Type', 'Authorization', 'Content-Length', 'X-Requested-With', 'Accept'],
   methods: ['GET', 'POST', 'OPTIONS'],
@@ -51,11 +49,13 @@ app.use('/contract/:contractId/*', addAgent);
 
 
 // routes
-app.get('/', (req, res) => {
+app.get('/', (req: express.Request, res: express.Response) => {
   res.send('<h1> Welcome to Conviction </h1>');
 });
 // create a new contract
-app.post('/create/contract', async (req, res) => {
+app.post('/create/contract', async (req: express.Request, res: express.Response) => {
+  console.log('creating contract');
+  
   if (req.body) {
     const body = {
       initiator: req.body.initiator,
@@ -76,10 +76,10 @@ app.post('/create/contract', async (req, res) => {
         const contract = await agent.deploy(source, [responder, referee, isConsumer]);
         // agent.contract = contract;
         // fs.writeFileSync(__dirname + '/contracts.json', JSON.stringify(contracts));
-        res.status(200).json({ result: contract._address, error: ''});
+        res.status(200).json({ result: { newContract: contract._address } , error: ''});
       } catch (err) {
         console.log(err);
-        res.status(500).json({ result: "", error: "Something went wrong"});
+        res.status(500).json({ result: "", error: err.message});
       }
     }
   } else {
@@ -87,7 +87,7 @@ app.post('/create/contract', async (req, res) => {
   }
 });
 // create a new offer
-app.post('/contract/:contractId/offer', async (req: any, res) => {
+app.post('/contract/:contractId/offer', async (req: express.Request, res: express.Response) => {
   
   if (req.body) {
     const body = {
@@ -106,12 +106,11 @@ app.post('/contract/:contractId/offer', async (req: any, res) => {
     } else {
       try {
         const agent: NegotiationAgent = req.body.agent;
-        const { Hash } = await writeBuffer(body.offer);
-        const result = await agent.offer(Hash, body.deposit, body.duration);
+        const result = await agent.offer(body.offer, body.deposit, body.duration);
         res.json(result);
       } catch (err) {
         console.log(err);
-        res.status(500).json({ result: "", error: "Something went wrong"});
+        res.status(500).json({ result: "", error: err.message});
       }
     }
   } else {
@@ -119,7 +118,7 @@ app.post('/contract/:contractId/offer', async (req: any, res) => {
   }
 });
 //create a counter offer
-app.post('/contract/:contractId/offer/:offerId', async (req: any, res) => {
+app.post('/contract/:contractId/offer/:offerId', async (req: express.Request, res: express.Response) => {
   if (req.body) {
     const body = {
       address: req.body.address,
@@ -136,16 +135,15 @@ app.post('/contract/:contractId/offer/:offerId', async (req: any, res) => {
     } else {
       try {
         const agent: NegotiationAgent = req.body.agent;
-        const { Hash } = await writeBuffer(body.counterOffer);
         let result = {};
         if(req.body.duration && req.body.deposit)
-          result = await agent.counterOffer(body.offerId, Hash, req.body.deposit, req.body.duration, body.state);
+          result = await agent.counterOffer(body.offerId, body.counterOffer, req.body.deposit, req.body.duration, body.state);
         else
-          result = await agent.counterOfferState(body.offerId, Hash, body.state);
+          result = await agent.counterOfferState(body.offerId, body.counterOffer, body.state);
           res.json(result);
       } catch (err) {
         console.log(err);
-        res.status(500).json({ result: "", error: "Contract creation reverted, the offer you are referencing does not exist."});
+        res.status(500).json({ result: "", error: err.message });
       }
     }
   } else {
@@ -153,7 +151,7 @@ app.post('/contract/:contractId/offer/:offerId', async (req: any, res) => {
   }
 });
 // create an agreement
-app.post('/contract/:contractId/offer/:offerId/agreement', async (req: any, res) => {
+app.post('/contract/:contractId/offer/:offerId/agreement', async (req: express.Request, res: express.Response) => {
   if (req.body) {
     const body = {
       address: req.body.address,
@@ -170,13 +168,12 @@ app.post('/contract/:contractId/offer/:offerId/agreement', async (req: any, res)
       try {
 
         const agent: NegotiationAgent = req.body.agent;
-        const { Hash } = await writeBuffer(body.agreement);
-        const result = await agent.createAgreement(body.offerId, Hash);
+        const result = await agent.createAgreement(body.offerId, body.agreement);
         res.json(result);
 
       } catch (err) {
         console.log(err);
-        res.status(500).json({ result: "", error: "Something went wrong"});
+        res.status(500).json({ result: "", error: err.message});
       }
      
     }
@@ -186,7 +183,7 @@ app.post('/contract/:contractId/offer/:offerId/agreement', async (req: any, res)
 });
 
 // deposit funds
-app.post('/contract/:contractId/offer/:offerId/deposit', async (req: any, res) => {
+app.post('/contract/:contractId/offer/:offerId/deposit', async (req: express.Request, res: express.Response) => {
   if (req.body) {
     const body = {
       address: req.body.address,
@@ -206,7 +203,7 @@ app.post('/contract/:contractId/offer/:offerId/deposit', async (req: any, res) =
         res.json(result);
       } catch (err) {
         console.log(err);
-        res.status(500).json({ result: "", error: "Something went wrong"});
+        res.status(500).json({ result: "", error: err.message});
       }
     }
   } else {
@@ -214,7 +211,7 @@ app.post('/contract/:contractId/offer/:offerId/deposit', async (req: any, res) =
   }
 });
 
-app.post('/contract/:contractId/offer/:offerId/withdraw', async (req: any, res) => {
+app.post('/contract/:contractId/offer/:offerId/withdraw', async (req: express.Request, res: express.Response) => {
   if (req.body) {
     const body = {
       address: req.body.address,
@@ -233,7 +230,7 @@ app.post('/contract/:contractId/offer/:offerId/withdraw', async (req: any, res) 
         res.json(result);
       } catch (err) {
         console.log(err);
-        res.status(500).json({ result: "", error: "Something went wrong"});
+        res.status(500).json({ result: "", error: err.message});
       }
     }
   } else {
@@ -241,7 +238,7 @@ app.post('/contract/:contractId/offer/:offerId/withdraw', async (req: any, res) 
   }
 });
 
-app.post('/contract/:contractId/offer/:offerId/flag/:num', async (req: any, res) => {
+app.post('/contract/:contractId/offer/:offerId/flag/:num', async (req: express.Request, res: express.Response) => {
   if (req.body) {
     const body = {
       address: req.body.address,
@@ -261,7 +258,7 @@ app.post('/contract/:contractId/offer/:offerId/flag/:num', async (req: any, res)
         res.json(result);
       } catch (err) {
         console.log(err);
-        res.status(500).json({ result: "", error: "Something went wrong"});
+        res.status(500).json({ result: "", error: err.message});
       }
     }
   } else {
@@ -269,7 +266,7 @@ app.post('/contract/:contractId/offer/:offerId/flag/:num', async (req: any, res)
   }
 });
 
-app.post('/contract/:contractId/offer/:offerId/dispute', async (req: any, res) => {
+app.post('/contract/:contractId/offer/:offerId/dispute', async (req: express.Request, res: express.Response) => {
   if (req.body) {
     const body = {
       address: req.body.address,
@@ -289,7 +286,7 @@ app.post('/contract/:contractId/offer/:offerId/dispute', async (req: any, res) =
         res.json(result);
       } catch (err) {
         console.log(err);
-        res.status(500).json({ result: "", error: "Something went wrong"});
+        res.status(500).json({ result: "", error: err.message});
       }
     }
   } else {
@@ -297,14 +294,14 @@ app.post('/contract/:contractId/offer/:offerId/dispute', async (req: any, res) =
   }
 });
 
-app.get('/contract/:contractId/offer/:offerId', async (req: any, res) => {
+app.get('/contract/:contractId/offer/:offerId', async (req: express.Request, res: express.Response) => {
   const agent: NegotiationAgent = req.body.agent;
   try {
     const result = await agent.getOffer(req.params.offerId);
     res.json(result);
   } catch (err) {
     console.log(err);
-    res.status(500).json({ result: "", error: "Something went wrong"});
+    res.status(500).json({ result: "", error: err.message});
   }
 });
 
