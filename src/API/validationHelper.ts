@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 export function argumentsDefined(_args: Object): string {
   const notDefined: Array<string> = [];
   for(const [key, value] of Object.entries(_args)) {
