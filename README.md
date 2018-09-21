@@ -15,7 +15,8 @@ To run this project you need to install the following software:
 #### web3
 #### solc
 ##### node-gyp
-Node gyp requires further dependencies such as python 2, a C compiler and make. To get a better overview visit their [github page](https://github.com/nodejs/node-gyp)
+This is a build tool that allows for the web3 [scrypt](https://www.tarsnap.com/scrypt.html) to be installed.
+Further dependencies are requires by node-gyp such as python 2, a C compiler and make. For platform specific details visit their [github page](https://github.com/nodejs/node-gyp).
 #### express
 ##### body-parser
 ##### morgan
