@@ -12,7 +12,28 @@ To run this project you need to install the following software:
 
 ### Dependencies
 
+#### web3
+#### solc
+#### express
+##### body-parser
+##### morgan
+##### cors
+#### cross-fetch
+##### form-data
+#### moment
+
 ## Getting Started
+
+### With Docker - production
+
+#### For Windows
+[install docker for windows](https://docs.docker.com/docker-for-windows/install/)
+
+### For Mac
+[install docker for mac](https://docs.docker.com/docker-for-mac/install/)
+
+
+### Without Docker - development
 
 Clone the repository and run the command `> npm install` to install of of the necessary dependencies.
 
