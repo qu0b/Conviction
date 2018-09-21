@@ -1,4 +1,4 @@
-# Conviction
+# conviction
 
 A Blockchain enabled WS-Agreement Framework
 
