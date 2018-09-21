@@ -1,10 +1,13 @@
 import Web3 from 'web3';
 import fs from 'fs';
 import solc from 'solc';
+// import net from 'net';
 
-export function connectToWeb3Provider(providerUrl: string = 'http://localhost:8545'): Web3 {
-  const httpProvider = new Web3.providers.HttpProvider(providerUrl);
-  return new Web3(httpProvider);
+export function connectToWeb3Provider(providerUrl: string = `http://${process.env.HOSTNAME_ETH_NODE || 'localhost'}:8545`): Web3 {
+  
+  const provider = new Web3.providers.HttpProvider(providerUrl);
+  //const provider = new Web3.providers.IpcProvider('/var/folders/z9/72tzgdss7sxcj8_bc1snpzmr0000gn/T/geth.ipc', net);
+  return new Web3(provider);
 }
 
 export function readSolFile(path: string = './contracts/simple_storage.sol') {

@@ -1,10 +1,13 @@
 {
   "name": "conviction-sla",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A Blockchain enabled WS-Agreement Framework",
-  "main": "dist/API/app.js",
+  "main": "./dist/api/app.js",
   "scripts": {
-    "start": "nodemon"
+    "start": "node dist/api/app.js",
+    "watch": "tsc -p tsconfig.json",
+    "test": "nodemon",
+    "compose": "docker-compose up -d"
   },
   "repository": {
     "type": "git",
@@ -18,21 +21,19 @@
   },
   "homepage": "https://github.com/qu0b/Conviction#readme",
   "dependencies": {
-    "@types/form-data": "^2.2.1",
-    "@types/node": "^10.3.0",
     "body-parser": "^1.18.3",
-    "bs58": "^4.0.1",
     "cors": "^2.8.4",
     "cross-fetch": "^2.2.1",
     "express": "^4.16.3",
     "form-data": "^2.3.2",
-    "helmet": "^3.13.0",
     "moment": "^2.22.2",
     "morgan": "^1.9.0",
     "solc": "^0.4.25",
-    "web3": "^1.0.0-beta.34"
+    "web3": "^1.0.0-beta.36"
   },
   "devDependencies": {
+    "@types/form-data": "^2.2.1",
+    "@types/node": "^10.3.0",
     "@types/body-parser": "^1.17.0",
     "@types/cors": "^2.8.4",
     "@types/express": "^4.16.0",

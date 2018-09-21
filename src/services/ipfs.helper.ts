@@ -1,9 +1,11 @@
 import { IpfsAddResponse } from 'types';
-import base58 from 'bs58';
 import FormData from 'form-data';
 import fetch from 'cross-fetch';
+const domain = `http://${process.env.HOSTNAME_IPFS || 'localhost'}:5001`
 
-export function writeBuffer(buffer: Buffer, baseURL: string = 'http://localhost:5001/api/v0/'): Promise<IpfsAddResponse> {
+export function writeBuffer(buffer: Buffer, baseURL: string = `${domain}/api/v0/`): Promise<IpfsAddResponse> {
+  
+
   const data: any = new FormData();
   data.append('data', buffer);
   return fetch(`${baseURL}add`, {
@@ -17,7 +19,7 @@ export function writeBuffer(buffer: Buffer, baseURL: string = 'http://localhost:
     });
 }
 
-export function readFile(hash: string, baseURL: string = 'http://localhost:5001/api/v0/'): Promise<string | Error> {
+export function readFile(hash: string, baseURL: string = `${domain}/api/v0/`): Promise<string | Error> {
   return fetch(`${baseURL}cat?arg=${hash}`, {
     method: 'GET',
   })
@@ -26,19 +28,6 @@ export function readFile(hash: string, baseURL: string = 'http://localhost:5001/
       console.log(err);
       throw Error('Could not read file from IPFS, check your IPFS connection');
     });
-}
-
-export function decodeMultiHash(hash: string) {
-  const dec = [
-    `0x${base58.decode(hash).slice(2).toString('hex')}`, // hash value
-    base58.decode(hash)[0], // type of hash function
-    base58.decode(hash)[1] // size
-  ]
-  return dec;
-}
-
-export function encodeMultihash([hash_value, hash_func, hash_size]) {
-  return hash_value;
 }
 
 export default module.exports;

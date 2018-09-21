@@ -1,0 +1,26 @@
+version: "3"
+services:
+  ipfs:
+    image: ipfs/go-ipfs:v0.4.17
+    networks: 
+      - pod
+    ports:
+      - "5001:5001"
+  parity:
+    image: parity/parity:v1.7.0
+    networks: 
+      - pod
+    command: --chain=dev --ui-interface all --jsonrpc-interface all --jsonrpc-apis 'personal,web3,eth,pubsub,net,parity,parity_pubsub,traces,rpc'
+    ports:
+     - "8545:8545"
+     - "8546:8546"
+     - "30303:30303"
+  server:
+    build: .
+    networks: 
+      - pod
+    ports:
+      - "8080:8080"
+networks:
+  pod:
+    driver: bridge

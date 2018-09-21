@@ -3,13 +3,13 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import logger from 'morgan';
 import cors from 'cors';
-import helmet from 'helmet';
 import { errors } from "./errors";
 import { argumentsDefined } from './validationHelper';
 import { prepareContract } from '../services/contract.helper';
 import NegotiationAgent from '../agents/negotiation.agent';
 
 const addAgent = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.log('setting up agent');
   const agent = new NegotiationAgent();
   if(req.body.initiator || req.body.address)
     agent.owner = req.body.initiator || req.body.address;
@@ -40,11 +40,11 @@ const corsOptions = {
 const app = express();
 app.use(logger('dev'));
 app.use(cors(corsOptions));
-app.use(helmet());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use('/create/contract', addAgent);
 app.use('/contract/:contractId/*', addAgent);
+app.use('/accounts', addAgent);
 
 
 
@@ -303,6 +303,27 @@ app.get('/contract/:contractId/offer/:offerId', async (req: express.Request, res
     console.log(err);
     res.status(500).json({ result: "", error: err.message});
   }
+});
+
+app.get('/accounts', async (req, res) => {
+  const accounts = await req.body.agent.accounts();
+  console.log(accounts);
+  
+  res.json({
+    result: accounts
+  });
+
+  app.get('/accounts/unlock', async (req, res) => {
+    const unlocked = await req.body.agent.authenticate('');
+    res.json({ result: unlocked });
+  });
+
+  app.get('/accounts/new', async (req, res) => {
+    const account = await req.body.agent.newAccount();
+    res.json({
+      address: account
+    });
+  })
 });
 
 

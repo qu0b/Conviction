@@ -6,9 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const web3_1 = __importDefault(require("web3"));
 const fs_1 = __importDefault(require("fs"));
 const solc_1 = __importDefault(require("solc"));
-function connectToWeb3Provider(providerUrl = 'http://localhost:8545') {
-    const httpProvider = new web3_1.default.providers.HttpProvider(providerUrl);
-    return new web3_1.default(httpProvider);
+// import net from 'net';
+function connectToWeb3Provider(providerUrl = `http://${process.env.HOSTNAME_ETH_NODE || 'localhost'}:8545`) {
+    const provider = new web3_1.default.providers.HttpProvider(providerUrl);
+    //const provider = new Web3.providers.IpcProvider('/var/folders/z9/72tzgdss7sxcj8_bc1snpzmr0000gn/T/geth.ipc', net);
+    return new web3_1.default(provider);
 }
 exports.connectToWeb3Provider = connectToWeb3Provider;
 function readSolFile(path = './contracts/simple_storage.sol') {

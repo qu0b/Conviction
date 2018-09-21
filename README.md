@@ -10,6 +10,8 @@ To run this project you need to install the following software:
 * [IPFS](https://ipfs.io)
 * Any Ethereum Node e.g. [Parity](https://parity.io)
 
+### Dependencies
+
 ## Getting Started
 
 Clone the repository and run the command `> npm install` to install of of the necessary dependencies.

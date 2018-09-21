@@ -7,12 +7,12 @@ const express_1 = __importDefault(require("express"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const morgan_1 = __importDefault(require("morgan"));
 const cors_1 = __importDefault(require("cors"));
-const helmet_1 = __importDefault(require("helmet"));
 const errors_1 = require("./errors");
 const validationHelper_1 = require("./validationHelper");
 const contract_helper_1 = require("../services/contract.helper");
 const negotiation_agent_1 = __importDefault(require("../agents/negotiation.agent"));
 const addAgent = (req, res, next) => {
+    console.log('setting up agent');
     const agent = new negotiation_agent_1.default();
     if (req.body.initiator || req.body.address)
         agent.owner = req.body.initiator || req.body.address;
@@ -39,11 +39,11 @@ const corsOptions = {
 const app = express_1.default();
 app.use(morgan_1.default('dev'));
 app.use(cors_1.default(corsOptions));
-app.use(helmet_1.default());
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use('/create/contract', addAgent);
 app.use('/contract/:contractId/*', addAgent);
+app.use('/accounts', addAgent);
 // routes
 app.get('/', (req, res) => {
     res.send('<h1> Welcome to Conviction </h1>');
@@ -312,6 +312,23 @@ app.get('/contract/:contractId/offer/:offerId', async (req, res) => {
         console.log(err);
         res.status(500).json({ result: "", error: err.message });
     }
+});
+app.get('/accounts', async (req, res) => {
+    const accounts = await req.body.agent.accounts();
+    console.log(accounts);
+    res.json({
+        result: accounts
+    });
+    app.get('/accounts/unlock', async (req, res) => {
+        const unlocked = await req.body.agent.authenticate('');
+        res.json({ result: unlocked });
+    });
+    app.get('/accounts/new', async (req, res) => {
+        const account = await req.body.agent.newAccount();
+        res.json({
+            address: account
+        });
+    });
 });
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {

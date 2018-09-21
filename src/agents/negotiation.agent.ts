@@ -2,7 +2,7 @@ import Web3 from 'web3';
 import { Offer, contractOffer } from "types";
 import { connectToWeb3Provider } from '../services/contract.helper';
 import { readFile, writeBuffer } from "../services/ipfs.helper";
-import { errors } from "../API/errors";
+
 export default class NegotiationAgent {
   gas = 4000000
   gasPrice = '0' // 1000000000
@@ -20,11 +20,30 @@ export default class NegotiationAgent {
   async authenticate(pass: string = process.env.ETH_PW || '') {
     try {
       //@ts-ignore
-      return this.authenticated = await this.web3.eth.personal.unlockAccount(this.owner, pass);
+      return this.authenticated = await this.web3.eth.personal.unlockAccount(this.owner, pass, '0x' + '1fff');
     } catch (error) {
       console.log('Could not authenticate', error);
       return false;
     }
+  }
+
+  async accounts() {
+    return await this.web3.eth.getAccounts();
+  }
+
+  async newAccount() {
+    const account = await this.web3.eth.personal.newAccount('');
+    if(account) {
+      //@ts-ignore
+      this.web3.eth.personal.unlockAccount(account, '', '0x' + '1fff');
+    }
+    return account;
+  }
+
+  async unlockDefault() {
+    const acc = await this.accounts();
+    //@ts-ignore
+    return await this.web3.eth.personal.unlockAccount(acc[0], '', '0x' + '1fff');
   }
 
   setOwner(address) {
