@@ -14,6 +14,8 @@ To run this project you need to install the following software:
 
 #### web3
 #### solc
+##### node-gyp
+Node gyp requires further dependencies such as python 2, a C compiler and make. To get a better overview visit their [github page](https://github.com/nodejs/node-gyp)
 #### express
 ##### body-parser
 ##### morgan
