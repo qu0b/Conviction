@@ -2,7 +2,7 @@
   "name": "conviction-sla",
   "version": "1.1.0",
   "description": "A Blockchain enabled WS-Agreement Framework",
-  "main": "./dist/api/app.js",
+  "main": "./dist/API/app.js",
   "scripts": {
     "start": "node dist/API/app.js",
     "watch": "tsc -p tsconfig.json",
