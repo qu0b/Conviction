@@ -80,7 +80,7 @@ and run:
 * Test Parity: `$ curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_accounts","params":[],"id":1}' http://parity:8545`
 * Test Server: `$ curl localhost:8080`
 
-If each of the commands above returns a response all three containers have been constructed successfully. From your host machine you can now interact with the server via `$ curl $(docker-machine ip):8080`. For more methods refer to the [API documentation](https://documenter.getpostman.com/view/506234/RWaKU9XG#0ee83dff-4923-4ca3-9e30-f28491ff7a4a).
+If each of the commands above returns a response all three containers have been constructed successfully. From your host machine you can now interact with the server via `$ curl localhost:8080` or `curl $(docker-machine ip):8080` depending on your setup. For more methods refer to the [API documentation](https://documenter.getpostman.com/view/506234/RWaKU9XG#0ee83dff-4923-4ca3-9e30-f28491ff7a4a).
 
 
 ### Local Development - Without Docker
