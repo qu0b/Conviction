@@ -5,7 +5,6 @@ ENV HOSTNAME_IPFS='ipfs'
 ENV NODE_ENV="production"
 COPY package.json ./
 RUN npm install
-RUN ls
 COPY . .
 
 EXPOSE 8080
