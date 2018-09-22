@@ -12,7 +12,10 @@ Parity is an ethereum client written in the Rust programming language. [Rust](ht
 An alternative to parity would be the [ethereum-go](https://geth.ethereum.org/) client.
 
 ### [IPFS](https://ipfs.io)
-[IPFS is a peer-to-peer hypermedia protocol to make the web faster,safer and more open](https://ipfs.io). It is essentially a fusion of git with bitTorrent.
+
+> IPFS is a peer-to-peer hypermedia protocol to make the web faster,safer and more open. 
+
+It is essentially a decentralized file system that benefits from the concepts brought forth by git and bitTorrent. It uses a distributed hash table to index the files and a pruning algorithm that hashes all of the data and removes duplicates. IPFS can be accessed over http and the content is spread accross many nodes.
 
 ### [Nodejs](https://nodejs.org)
 
