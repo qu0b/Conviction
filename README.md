@@ -117,6 +117,8 @@ Before we can start the server we need to install the dependencies. This can be 
 
 To test if the server is running execute `curl localhost:8080`. For further commands refer to the [API documentation](https://documenter.getpostman.com/view/506234/RWaKU9XG#0ee83dff-4923-4ca3-9e30-f28491ff7a4a).
 
+For windows you might have to additionally install websocket `npm install websocket`.
+
 
 
 
