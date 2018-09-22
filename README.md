@@ -54,7 +54,7 @@ Moment is a library that makes it easy to work with dates. It supports a wide ra
 ## Getting Started
 In this section, the process of getting the project up and running is described. The first part is the production build with docker and the second part is the development build locally. Although to get started either way first clone the repository `$ git clone https://github.com/qu0b/conviction.git && cd conviction`.
 
-### With Docker - production
+### Production - Docker
 This is the production build where each service is run in its own container. In total there are three containers. The first is the ethereum node with the hostname parity, the second is IPFS node and the last is the server. All three containers are put into the same network called pod. If you do not already have docker follow the instructions below. After the installation is done your system should have docker-engine, docker-machine and docker-compose.
 
 #### For Windows
@@ -77,7 +77,7 @@ and run:
 If each of the commands above returns a response all three containers have been constructed successfully. From your host machine you can now interact with the server via `$ curl $(docker-machine ip):8080`. For more methods refer to the [API documentation](https://documenter.getpostman.com/view/506234/RWaKU9XG#0ee83dff-4923-4ca3-9e30-f28491ff7a4a).
 
 
-### Local development - without docker
+### Local Development - Without Docker
 
 For local development more packages will be installed that are not essential for production. These packages include mainly [Typescript](https://www.typescriptlang.org/) dependencies that improve the developer expierence. The `$ @types/*` packages are type definitions for typescript. Another important developer dependency is [Nodemon](https://www.npmjs.com/package/nodemon) which listens for changes and restarts the server automatically.
 
@@ -106,8 +106,8 @@ To see if the node is running it is possible to call:
 
 Before we can start the server we need to install the dependencies. This can be done by running `npm install`. The server can be launched either with nodemone to track code changes or with node.
 
-* npm start - node
-* npm test - nodemon
+* npm start - node (does not restart)
+* npm test - nodemon (restarts on code changes)
 
 To test if the server is running execute `curl localhost:8080`. For further commands refer to the [API documentation](https://documenter.getpostman.com/view/506234/RWaKU9XG#0ee83dff-4923-4ca3-9e30-f28491ff7a4a).
 
