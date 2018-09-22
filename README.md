@@ -4,16 +4,16 @@ This project seeks to utilize the trust granted by distributed ledger technologi
 
 ## Dependencies
 
-To run this project the following software packages are required. If you run the project with docker the dependencies listed below will be installed not on your machine but on the in the docker containers.
+To run this project the following software packages are required. If you run the project with docker the dependencies listed below will be installed not on your machine, but in the docker containers.
 
-### [Parity](https://parity.io)
-Parity is an ethereum client written in the Rust programming language. [Rust](https://www.rust-lang.org/) is a systems language with a focus on safety.
+### [Parity](https://wiki.parity.io/Parity-Ethereum)
+Parity is an ethereum client written in the Rust programming language. [Rust](https://www.rust-lang.org/) is a systems language with a focus on safety. Parity comes as a CLI tool and can expose a JSON-RPC HTTP API via the port 8545. This API can be used to interact with the ethereum blockchain. Partiy relies on openssl to create new accounts and to sign transactions.
 
 An alternative to parity would be the [ethereum-go](https://geth.ethereum.org/) client.
 
 ### [IPFS](https://ipfs.io)
 
-> IPFS is a peer-to-peer hypermedia protocol to make the web faster,safer and more open. 
+> IPFS is a peer-to-peer hypermedia protocol to make the web faster, safer and more open. 
 
 It is essentially a decentralized file system that benefits from the concepts brought forth by git and bitTorrent. It uses a distributed hash table to index the files and a pruning algorithm that hashes all of the data and removes duplicates. IPFS can be accessed over http and the content is spread accross many nodes.
 
@@ -25,7 +25,7 @@ Initially, Javascript would only be run in the browser until the Nodejs project 
 This is a client library which communicates with the ethereum node, in our case parity, over rpc calls. The man components of the library that we use are `web3.eth.Contract` , `web3.eth.accounts`  and `web3.eth.personal` .
 
 #### [Solc](https://github.com/ethereum/solc-js)
-This package provides bindings for us to use the solidity compiler in our Nodejs projcet.
+This package provides bindings for us to use the solidity compiler in our Nodejs projcet. The [Solidity](https://solidity.readthedocs.io/en/develop/) language focues on contract creation and allows for the implementation of smart contracts.
 
 ##### Node-gyp
 This is a build tool that allows for the web3 [scrypt](https://www.tarsnap.com/scrypt.html) dependency to be installed. It uses a wrapper library that can be found [here](https://www.npmjs.com/package/scrypt). The dependencies that are required by node-gyp are python 2, a C compiler and make. For platform specific details visit their [github page](https://github.com/nodejs/node-gyp).
@@ -63,10 +63,12 @@ Follow the instructions to [install docker for windows](https://docs.docker.com/
 #### For Mac
 Follow the instructions to [install docker for mac](https://docs.docker.com/docker-for-mac/install/), a direct download link can be found [here](https://download.docker.com/mac/edge/Docker.dmg) otherwise a registration is required.
 
-#### Running the containers
+
 After you have successfully installed docker and can run `$ docker version`, `$ docker-machine version` and `$ docker-compose version` we can launch the containers. The launch configuration can be found in the `docker-compose.yml` file. The containers can be launched with the command `$ docker-compose up -d` and can be shutdown with `$ docker-compose down`. To inspect the running containers it is possible to run `$ docker ps -a`. 
 
-To test if the containers are running and that the ports are exposed as expected run connect to the shell of the server `$ docker exec -it conviction_server_1 /bin/bash` and run:
+To test if the containers are running and that the ports are exposed as expected connect to the server shell 
+`$ docker exec -it conviction_server_1 /bin/bash` 
+and run:
 
 * Test IPFS: `$ curl "http://ipfs:5001/api/v0/version"`
 * Test Parity: `$ curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_accounts","params":[],"id":1}' http://parity:8545`
@@ -77,9 +79,10 @@ If each of the commands above returns a response all three containers have been 
 
 ### Local development - without docker
 
-For local development more packages will be installed that are not essential for production. These packages include mainly [Typescript](https://www.typescriptlang.org/) dependencies that improve the development expierence. The `$ @types/*` packages are type definitions for typescript. Another important developer dependency is [Nodemon](https://www.npmjs.com/package/nodemon) which listens for changes and restarts the server automatically.
+For local development more packages will be installed that are not essential for production. These packages include mainly [Typescript](https://www.typescriptlang.org/) dependencies that improve the developer expierence. The `$ @types/*` packages are type definitions for typescript. Another important developer dependency is [Nodemon](https://www.npmjs.com/package/nodemon) which listens for changes and restarts the server automatically.
 
-Changes to the Typescript files need to be transpiled to javascript by calling this command: `$ npx tsc -p "tsconfig.json"`.
+Changes to the Typescript files need to be transpiled to javascript by calling this command: 
+`$ npx tsc -p "tsconfig.json"`.
 
 #### Setting up IPFS
 To get ipfs running on your machine follow the [install instructions](https://docs.ipfs.io/introduction/install/). After calling `$ ipfs init` it is possible to run an `$ ipfs daemon`. Once the daemon is running it possible to access the IPFS API via `localhost:5001`.
@@ -99,7 +102,7 @@ $ parity --chain=dev \
 To see if the node is running it is possible to call:
 `$ curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_accounts","params":[],"id":1}' http://localhost:8545`
 
-### Setting up the server
+#### Setting up the server
 
 Before we can start the server we need to install the dependencies. This can be done by running `npm install`. The server can be launched either with nodemone to track code changes or with node.
 
