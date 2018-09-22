@@ -52,7 +52,7 @@ This libaray helps create multipart/form-data streams. We use this library to su
 Moment is a library that makes it easy to work with dates. It supports a wide range functions for parsing, manipulating and formatting dates.
 
 ## Getting Started
-In this section, the process of getting the project up and running is described. The first part is the production build with docker and the second part is the development build locally. Although to get started either way first clone the repository `$ git clone https://github.com/qu0b/conviction.git && cd conviction`.
+In this section, the process of getting the project up and running is described. The first part is the production build with docker and the second part is the development build locally. To get started either way, clone the repository `$ git clone https://github.com/qu0b/conviction.git && cd conviction`.
 
 ### Production - Docker
 This is the production build where each service is run in its own container. In total there are three containers. The first is the ethereum node with the hostname parity, the second is IPFS node and the last is the server. All three containers are put into the same network called pod. If you do not already have docker follow the instructions below. After the installation is done your system should have docker-engine, docker-machine and docker-compose.
