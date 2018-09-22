@@ -64,7 +64,13 @@ Follow the instructions to [install docker for windows](https://docs.docker.com/
 Follow the instructions to [install docker for mac](https://docs.docker.com/docker-for-mac/install/), a direct download link can be found [here](https://download.docker.com/mac/edge/Docker.dmg) otherwise a registration is required.
 
 
-After you have successfully installed docker and can run `$ docker version`, `$ docker-machine version` and `$ docker-compose version` we can launch the containers. The launch configuration can be found in the `docker-compose.yml` file. The containers can be launched with the command `$ docker-compose up -d` and can be shutdown with `$ docker-compose down`. To inspect the running containers it is possible to run `$ docker ps -a`. 
+After docker has been successfully installed you should be able to run the following commands:
+
+* `$ docker version` 
+* `$ docker-machine version` 
+* `$ docker-compose version` 
+
+The launch configuration can be found in the `docker-compose.yml` file. The containers can be launched with the command `$ docker-compose up -d` and can be shutdown with `$ docker-compose down`. To inspect the running containers it is possible to run `$ docker ps -a`. 
 
 To test if the containers are running and that the ports are exposed as expected connect to the server shell 
 `$ docker exec -it conviction_server_1 /bin/bash` 
