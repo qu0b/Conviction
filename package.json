@@ -7,7 +7,8 @@
     "start": "node dist/api/app.js",
     "watch": "tsc -p tsconfig.json",
     "test": "nodemon",
-    "compose": "docker-compose up -d"
+    "compose": "docker-compose up -d",
+    "shutdown": "docker-compose down"
   },
   "repository": {
     "type": "git",
@@ -37,9 +38,7 @@
     "@types/body-parser": "^1.17.0",
     "@types/cors": "^2.8.4",
     "@types/express": "^4.16.0",
-    "@types/helmet": "0.0.40",
     "@types/moment": "^2.13.0",
-    "@types/mongodb": "^3.1.4",
     "@types/morgan": "^1.7.35",
     "@types/web3": "^1.0.0",
     "nodemon": "^1.18.4",
