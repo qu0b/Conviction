@@ -4,7 +4,7 @@
   "description": "A Blockchain enabled WS-Agreement Framework",
   "main": "./dist/api/app.js",
   "scripts": {
-    "start": "node dist/api/app.js",
+    "start": "node dist/API/app.js",
     "watch": "tsc -p tsconfig.json",
     "test": "nodemon",
     "compose": "docker-compose up -d",
