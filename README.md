@@ -52,9 +52,9 @@ This libaray helps create multipart/form-data streams. We use this library to su
 Moment is a library that makes it easy to work with dates. It supports a wide range functions for parsing, manipulating and formatting dates.
 
 ## Getting Started
-In this section, the process of getting the project up and running is described. The first part is the production build with docker and the second part is the development build locally. Although to get started either way first clone the repository `$ git clone https://github.com/qu0b/conviction.git && cd conviction`.
+In this section, the process of getting the project up and running is described. The first part is the production build with docker and the second part is the development build locally. To get started either way, clone the repository `$ git clone https://github.com/qu0b/conviction.git && cd conviction`.
 
-### With Docker - Production
+### Production - Docker
 This is the production build where each service is run in its own container. In total there are three containers. The first is the ethereum node with the hostname parity, the second is IPFS node and the last is the server. All three containers are put into the same network called pod. If you do not already have docker follow the instructions below. After the installation is done your system should have docker-engine, docker-machine and docker-compose.
 
 #### For Windows
@@ -64,7 +64,13 @@ Follow the instructions to [install docker for windows](https://docs.docker.com/
 Follow the instructions to [install docker for mac](https://docs.docker.com/docker-for-mac/install/), a direct download link can be found [here](https://download.docker.com/mac/edge/Docker.dmg) otherwise a registration is required.
 
 
-After you have successfully installed docker and can run `$ docker version`, `$ docker-machine version` and `$ docker-compose version` we can launch the containers. The launch configuration can be found in the `docker-compose.yml` file. The containers can be launched with the command `$ docker-compose up -d` and can be shutdown with `$ docker-compose down`. To inspect the running containers it is possible to run `$ docker ps -a`. 
+After docker has been successfully installed you should be able to run the following commands:
+
+* `$ docker version` 
+* `$ docker-machine version` 
+* `$ docker-compose version` 
+
+The launch configuration can be found in the `docker-compose.yml` file. The containers can be launched with the command `$ docker-compose up -d` and can be shutdown with `$ docker-compose down`. To inspect the running containers it is possible to run `$ docker ps -a`. 
 
 To test if the containers are running and that the ports are exposed as expected connect to the server shell 
 `$ docker exec -it conviction_server_1 /bin/bash` 
@@ -74,7 +80,7 @@ and run:
 * Test Parity: `$ curl -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_accounts","params":[],"id":1}' http://parity:8545`
 * Test Server: `$ curl localhost:8080`
 
-If each of the commands above returns a response all three containers have been constructed successfully. From your host machine you can now interact with the server via `$ curl $(docker-machine ip):8080`. For more methods refer to the [API documentation](https://documenter.getpostman.com/view/506234/RWaKU9XG#0ee83dff-4923-4ca3-9e30-f28491ff7a4a).
+If each of the commands above returns a response all three containers have been constructed successfully. From your host machine you can now interact with the server via `$ curl localhost:8080` or `curl $(docker-machine ip):8080` depending on your setup. For more methods refer to the [API documentation](https://documenter.getpostman.com/view/506234/RWaKU9XG#0ee83dff-4923-4ca3-9e30-f28491ff7a4a).
 
 
 ### Local Development - Without Docker
@@ -106,10 +112,12 @@ To see if the node is running it is possible to call:
 
 Before we can start the server we need to install the dependencies. This can be done by running `npm install`. The server can be launched either with nodemone to track code changes or with node.
 
-* npm start - node
-* npm test - nodemon
+* npm start - node (does not restart)
+* npm test - nodemon (restarts on code changes)
 
 To test if the server is running execute `curl localhost:8080`. For further commands refer to the [API documentation](https://documenter.getpostman.com/view/506234/RWaKU9XG#0ee83dff-4923-4ca3-9e30-f28491ff7a4a).
+
+For windows you might have to additionally install websocket `npm install websocket`.
 
 
 

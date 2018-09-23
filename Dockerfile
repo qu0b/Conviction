@@ -3,7 +3,7 @@ WORKDIR /usr/src/app
 ENV HOSTNAME_ETH_NODE='parity'
 ENV HOSTNAME_IPFS='ipfs'
 ENV NODE_ENV="production"
-COPY package*.json ./
+COPY package.json ./
 RUN npm install
 COPY . .
 
