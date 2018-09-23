@@ -2,7 +2,8 @@ import Web3 from 'web3';
 import { Offer, contractOffer } from "types";
 import { connectToWeb3Provider } from '../services/contract.helper';
 import { readFile, writeBuffer } from "../services/ipfs.helper";
-
+import moment from "moment";
+import fs from 'fs';
 export default class NegotiationAgent {
   gas = 4000000
   gasPrice = '0' // 1000000000
@@ -94,9 +95,9 @@ export default class NegotiationAgent {
   }
 
   async saveTransaction(transaction) {
-    // transaction.meta.date = moment().unix();
-    // transaction.meta.from = this.owner;
-    // fs.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
+    transaction.meta.date = moment().unix();
+    transaction.meta.from = this.owner;
+    fs.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
   }
 
   async getBalance() {
@@ -120,6 +121,16 @@ export default class NegotiationAgent {
       ipfs_reference,
       deposit,
       duration
+    }
+    this.saveTransaction(transaction);
+    return transaction;
+  }
+  async offerSimple(ipfs_reference) {
+    ipfs_reference = (await writeBuffer(ipfs_reference)).Hash;
+    const transaction = await this.contract.methods.offer(ipfs_reference).send({ from: this.owner }).on('error', err => console.log);
+    transaction.meta = {
+      type: "offerSimple",
+      ipfs_reference
     }
     this.saveTransaction(transaction);
     return transaction;
@@ -150,6 +161,17 @@ export default class NegotiationAgent {
       state,
       deposit,
       duration
+    }
+    this.saveTransaction(transaction);
+    return transaction;
+  }
+
+  async counterOfferSimple(index, ipfs_reference) {
+    ipfs_reference = (await writeBuffer(ipfs_reference)).Hash;
+    const transaction = await this.contract.methods.counterOffer(index, ipfs_reference).send({ from: this.owner }).on('error', err => console.log);
+    transaction.meta = {
+      type: "counterOfferSimple",
+      ipfs_reference
     }
     this.saveTransaction(transaction);
     return transaction;

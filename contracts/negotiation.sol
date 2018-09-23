@@ -6,6 +6,7 @@ contract Negotiation {
 
   address initiator;
   address responder;
+  string[] public ipfs_references;
   Offer[] public offers;
   mapping(uint => address) payee;
   event depsoitMade(address consumer, uint amount);

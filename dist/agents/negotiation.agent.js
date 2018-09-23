@@ -1,7 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const contract_helper_1 = require("../services/contract.helper");
 const ipfs_helper_1 = require("../services/ipfs.helper");
+const moment_1 = __importDefault(require("moment"));
+const fs_1 = __importDefault(require("fs"));
 class NegotiationAgent {
     constructor(owner = "0x00a329c0648769a73afac7f9381e08fb43dbea72", web3 = contract_helper_1.connectToWeb3Provider(), providerURL) {
         this.owner = owner;
@@ -82,9 +87,9 @@ class NegotiationAgent {
         });
     }
     async saveTransaction(transaction) {
-        // transaction.meta.date = moment().unix();
-        // transaction.meta.from = this.owner;
-        // fs.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
+        transaction.meta.date = moment_1.default().unix();
+        transaction.meta.from = this.owner;
+        fs_1.default.appendFileSync('./log.json', JSON.stringify(transaction) + ",");
     }
     async getBalance() {
         //@ts-ignore
@@ -107,6 +112,16 @@ class NegotiationAgent {
             ipfs_reference,
             deposit,
             duration
+        };
+        this.saveTransaction(transaction);
+        return transaction;
+    }
+    async offerSimple(ipfs_reference) {
+        ipfs_reference = (await ipfs_helper_1.writeBuffer(ipfs_reference)).Hash;
+        const transaction = await this.contract.methods.offer(ipfs_reference).send({ from: this.owner }).on('error', err => console.log);
+        transaction.meta = {
+            type: "offerSimple",
+            ipfs_reference
         };
         this.saveTransaction(transaction);
         return transaction;
@@ -135,6 +150,16 @@ class NegotiationAgent {
             state,
             deposit,
             duration
+        };
+        this.saveTransaction(transaction);
+        return transaction;
+    }
+    async counterOfferSimple(index, ipfs_reference) {
+        ipfs_reference = (await ipfs_helper_1.writeBuffer(ipfs_reference)).Hash;
+        const transaction = await this.contract.methods.counterOffer(index, ipfs_reference).send({ from: this.owner }).on('error', err => console.log);
+        transaction.meta = {
+            type: "counterOfferSimple",
+            ipfs_reference
         };
         this.saveTransaction(transaction);
         return transaction;

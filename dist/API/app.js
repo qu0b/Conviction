@@ -11,6 +11,8 @@ const errors_1 = require("./errors");
 const validationHelper_1 = require("./validationHelper");
 const contract_helper_1 = require("../services/contract.helper");
 const negotiation_agent_1 = __importDefault(require("../agents/negotiation.agent"));
+const negotiation = contract_helper_1.prepareContract();
+const simpleNegotiation = contract_helper_1.prepareContract('contracts/simpleNegotiation.sol', 'SimleNegotiation');
 const addAgent = (req, res, next) => {
     console.log('setting up agent');
     const agent = new negotiation_agent_1.default();
@@ -18,7 +20,7 @@ const addAgent = (req, res, next) => {
         agent.owner = req.body.initiator || req.body.address;
     if (req.params.contractId) {
         try {
-            agent.setContract(contract_helper_1.prepareContract(), req.params.contractId);
+            agent.setContract(negotiation, req.params.contractId);
         }
         catch (err) {
             res.json({ result: "", error: "contract not found" });
@@ -54,9 +56,7 @@ app.post('/create/contract', async (req, res) => {
     if (req.body) {
         const body = {
             initiator: req.body.initiator,
-            responder: req.body.responder,
-            referee: req.body.referee,
-            isConsumer: req.body.isConsumer
+            responder: req.body.responder
         };
         const missingArguments = validationHelper_1.argumentsDefined(body);
         if (missingArguments) {
@@ -65,18 +65,33 @@ app.post('/create/contract', async (req, res) => {
             errors_1.errors.ERROR_MISSING_ARGUMENT.sendError(res);
         }
         else {
+            const referee = req.body.referee;
+            const isConsumer = req.body.isConsumer;
             const agent = req.body.agent;
-            const source = contract_helper_1.prepareContract();
-            const { responder, referee, isConsumer } = body;
-            try {
-                const contract = await agent.deploy(source, [responder, referee, isConsumer]);
-                // agent.contract = contract;
-                // fs.writeFileSync(__dirname + '/contracts.json', JSON.stringify(contracts));
-                res.status(200).json({ result: { newContract: contract._address }, error: '' });
+            const { responder } = body;
+            if (referee && isConsumer) {
+                const source = negotiation;
+                try {
+                    const contract = await agent.deploy(source, [responder, referee, isConsumer]);
+                    // agent.contract = contract;
+                    // fs.writeFileSync(__dirname + '/contracts.json', JSON.stringify(contracts));
+                    res.status(200).json({ result: { newContract: contract._address, type: "Negotiation Strategy" }, error: '' });
+                }
+                catch (err) {
+                    console.log(err);
+                    res.status(500).json({ result: "", error: err.message });
+                }
             }
-            catch (err) {
-                console.log(err);
-                res.status(500).json({ result: "", error: err.message });
+            else {
+                try {
+                    const source = simpleNegotiation;
+                    const contract = await agent.deploy(source, [responder]);
+                    res.status(200).json({ result: { newContract: contract._address, type: "Simple Negotiation" }, error: '' });
+                }
+                catch (err) {
+                    console.log(err);
+                    res.status(500).json({ result: "", error: err.message });
+                }
             }
         }
     }
@@ -90,9 +105,6 @@ app.post('/contract/:contractId/offer', async (req, res) => {
         const body = {
             address: req.body.address,
             offer: req.body.offer,
-            deposit: req.body.deposit,
-            duration: req.body.duration,
-            contractId: req.params.contractId
         };
         const missingArguments = validationHelper_1.argumentsDefined(body);
         if (missingArguments) {
@@ -101,14 +113,30 @@ app.post('/contract/:contractId/offer', async (req, res) => {
             errors_1.errors.ERROR_MISSING_ARGUMENT.sendError(res);
         }
         else {
-            try {
-                const agent = req.body.agent;
-                const result = await agent.offer(body.offer, body.deposit, body.duration);
-                res.json(result);
+            const deposit = req.body.deposit;
+            const duration = req.body.duration;
+            const contractId = req.params.contractId;
+            const agent = req.body.agent;
+            if (deposit && duration && contractId) {
+                try {
+                    const result = await agent.offer(body.offer, deposit, duration);
+                    res.json(result);
+                }
+                catch (err) {
+                    console.log(err);
+                    res.status(500).json({ result: "", error: err.message });
+                }
             }
-            catch (err) {
-                console.log(err);
-                res.status(500).json({ result: "", error: err.message });
+            else {
+                try {
+                    agent.setContract(simpleNegotiation, req.params.contractId);
+                    const result = await agent.offerSimple(body.offer);
+                    res.json(result);
+                }
+                catch (err) {
+                    console.log(err);
+                    res.status(500).json({ result: "", error: err.message });
+                }
             }
         }
     }
@@ -122,7 +150,6 @@ app.post('/contract/:contractId/offer/:offerId', async (req, res) => {
         const body = {
             address: req.body.address,
             counterOffer: req.body.counterOffer,
-            state: req.body.state,
             offerId: req.params.offerId,
             contractId: req.params.contractId
         };
@@ -133,18 +160,32 @@ app.post('/contract/:contractId/offer/:offerId', async (req, res) => {
             errors_1.errors.ERROR_MISSING_ARGUMENT.sendError(res);
         }
         else {
-            try {
-                const agent = req.body.agent;
-                let result = {};
-                if (req.body.duration && req.body.deposit)
-                    result = await agent.counterOffer(body.offerId, body.counterOffer, req.body.deposit, req.body.duration, body.state);
-                else
-                    result = await agent.counterOfferState(body.offerId, body.counterOffer, body.state);
-                res.json(result);
+            const state = req.body.state;
+            const agent = req.body.agent;
+            if (state) {
+                try {
+                    let result = {};
+                    if (req.body.duration && req.body.deposit)
+                        result = await agent.counterOffer(body.offerId, body.counterOffer, req.body.deposit, req.body.duration, state);
+                    else
+                        result = await agent.counterOfferState(body.offerId, body.counterOffer, state);
+                    res.json(result);
+                }
+                catch (err) {
+                    console.log(err);
+                    res.status(500).json({ result: "", error: err.message });
+                }
             }
-            catch (err) {
-                console.log(err);
-                res.status(500).json({ result: "", error: err.message });
+            else {
+                try {
+                    agent.setContract(simpleNegotiation, req.params.contractId);
+                    const result = await agent.counterOfferSimple(body.offerId, body.counterOffer);
+                    res.json(result);
+                }
+                catch (err) {
+                    console.log(err);
+                    res.status(500).json({ result: "", error: err.message });
+                }
             }
         }
     }
